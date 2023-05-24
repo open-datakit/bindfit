@@ -2,7 +2,8 @@ from __future__ import division
 from __future__ import print_function
 
 from math import sqrt
-from copy import deepcopy import time
+from copy import deepcopy
+import time
 from itertools import product
 
 import numpy as np
@@ -88,7 +89,7 @@ class Fitter():
         logger.debug(b)
 
         # Run optimizer 
-        tic = time.clock()
+        tic = time.perf_counter()
         result = scipy.optimize.minimize(self.function.objective,
                                          p,
                                          bounds=b,
@@ -96,7 +97,7 @@ class Fitter():
                                          method=method if method else "Nelder-Mead",
                                          tol=1e-18,
                                         )
-        toc = time.clock()
+        toc = time.perf_counter()
 
         logger.debug("Fitter.run: FIT FINISHED")
         logger.debug("Fitter.run: Fitter.function")
