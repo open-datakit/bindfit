@@ -23,13 +23,6 @@
           pkgs.python310Packages.scipy
           pkgs.python310Packages.pandas
         ];
-        shellHook = ''
-          VENV=.venv
-          if test ! -d $VENV; then
-            python -m venv .venv
-          fi
-          source ./$VENV/bin/activate
-        '';
       };
     });
 }
