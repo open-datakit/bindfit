@@ -14,13 +14,71 @@ import scipy.optimize
 from scipy import stats
 
 from . import functions
-from . import helpers 
+from . import helpers
 
-import logging
-logger = logging.getLogger('supramolecular')
 
 class Fitter():
-    def __init__(self, xdata, ydata, function, normalise=True, params=None):
+    """
+    Fitter class for optimising binding constant functions
+
+    Parameters
+    ----------
+    xdata : array_like, 2xN matrix
+        Host/Guest data matrix, one variable per row
+    ydata : array_like, MxN matrix
+        Observed data matrix, one variable per row
+    function : function
+        The fitter function to use for optimisation
+    normalise : boolean, optional
+        Whether to normalise the x data before fitting, defaults to True
+    params : dict
+        Dict of initial values for parameters to pass to the fitting func
+        Value of parameter keys depends on the fitting function selected
+        Example:
+        {
+            "k": {
+                "init": 100.0,
+                "bounds": {
+                    "min": 0.0,
+                    "max": None,
+                },
+            },
+        }
+
+    Attributes
+    ----------
+    xdata : array_like, 2xN matrix
+        Host/Guest data matrix, one variable per row
+    ydata : array_like, MxN matrix
+        Observed data matrix, one variable per row
+    function : function
+        The fitter function to use for optimisation
+    normalise : boolean, optional
+        Whether to normalise the x data before fitting, defaults to True
+    params : dict
+        Dict of initial values for parameters passed to the fitting func
+        See above for example format
+    time : string
+        Populated after fitting, total time taken to fit
+    fit : array_like, MxN matrix
+        Fit curve matrix, same dimensions as ydata
+    residuals : array_like, MxN matrix
+        Observed data fit residuals matrix, same dimensions as ydata
+    coeffs : array_like, (1:1 - 2|1:2 - 3)xM matrix
+        Fit coefficients
+    molefrac : array_like, (1:1 - 2|1:2 - 3)xN matrix
+        Fit molefractions
+    """
+
+    def __init__(
+        self,
+        xdata,
+        ydata,
+        function,
+        normalise=True,
+        params=None,
+    ):
+
         self.xdata = xdata # Original input data, no processing applied
         self.ydata = ydata # Original input data, no processing applied
         self.function = function
@@ -51,14 +109,21 @@ class Fitter():
 
     def _postprocess(self, ydata, yfit):
         # Postprocess fitted data based on Fitter options 
-        f = yfit 
+        f = yfit
 
         if self.normalise:
             f = helpers.denormalise(ydata, yfit)
 
-        return f 
+        return f
 
-    def run_scipy(self, params_init, save=True, xdata=None, ydata=None, method='Nelder-Mead'):
+    def run_scipy(
+        self,
+        params_init,
+        save=True,
+        xdata=None,
+        ydata=None,
+        method="Nelder-Mead",
+    ):
         """
         Arguments:
             params_init: dict  Initial parameter guesses for fitter    
@@ -69,13 +134,10 @@ class Fitter():
                                (used with save=False for Monte Carlo error 
                                calculation)
         """
-        logger.debug("Fitter.fit: called. Input params:")
-        logger.debug(params_init)
-
         # Set input data
         x = self.xdata if xdata is None else xdata
         y = self._preprocess(self.ydata if ydata is None else ydata)
-        
+
         # Sort parameter dict into ordered array of parameters and bounds
         p = []
         b = []
@@ -84,11 +146,7 @@ class Fitter():
             b.append([value["bounds"]["min"],
                       value["bounds"]["max"]])
 
-        logger.debug("Fitter.fit: params and bounds read:")
-        logger.debug(p)
-        logger.debug(b)
-
-        # Run optimizer 
+        # Run optimizer
         tic = time.perf_counter()
         result = scipy.optimize.minimize(self.function.objective,
                                          p,
@@ -99,22 +157,10 @@ class Fitter():
                                         )
         toc = time.perf_counter()
 
-        logger.debug("Fitter.run: FIT FINISHED")
-        logger.debug("Fitter.run: Fitter.function")
-        logger.debug(self.function)
-        logger.debug("Fitter.run: result.x")
-        logger.debug(result.x)
-
         # Calculate fitted data with optimised parameters
         # Force molefraction (not free concentration) calculation for proper 
         # fitting in UV models
-        logger.debug("Fitter.run: Calculating optimised fit")
-        logger.debug("Fitter.run: self.ydata vs. ydata")
-        logger.debug(self.ydata)
-        logger.debug(ydata)
         ydata_init = self.ydata[:,0] if ydata is None else ydata[:,0]
-        logger.debug("Fitter.run: ydata_init")
-        logger.debug(ydata_init)
         fit_norm, residuals, coeffs_raw, molefrac_raw, coeffs, molefrac = self.function.objective(result.x, x, y, scalar=False, ydata_init=ydata_init)
 
         # Postprocessing
@@ -142,9 +188,7 @@ class Fitter():
         results["molefrac_raw"] = molefrac_raw
 
         # Calculate fit uncertainty statistics
-        logger.debug("Fitter.run: Calculating uncertainty statistics")
         err = self.statistics(result.x, fit, coeffs_raw, residuals)
-        logger.debug("Fitter.run: Done calculating uncertainty statistics")
 
         # Parse final optimised parameters and errors into parameters dict
         results["params"] = self.function.format_params(params_init, 
@@ -156,7 +200,6 @@ class Fitter():
             for key, value in results.items():
                 setattr(self, key, value)
 
-            #logger.debug("Fitter.run: CALCULATING MONTE CARLO (TEST)")
             #self.calc_monte_carlo(5, [0.02, 0.01], 0.005)
         else:
             # Return results dict without saving
@@ -278,26 +321,16 @@ class Fitter():
             xdata_shift = xdata*xdata_error_arr
             ydata_shift = ydata*ydata_error_arr
 
-            logger.debug("Fitter.monte_carlo: params_init")
-            logger.debug(params_init)
-
             results = self.run_scipy(params_init=params_init,
                                      save       =False, 
                                      xdata      =xdata_shift, 
                                      ydata      =ydata_shift,
                                      method     =method)
 
-            logger.debug("Fitter.monte_carlo: results")
-            logger.debug(results)
-
             # Log resulting params
             params_arr[n] = results["_params_raw"]
 
         percentile_params = np.percentile(params_arr, [2.5, 97.5], axis=0).T
-
-        logger.debug("Fitter.monte_carlo: params_arr, percentile_params")
-        logger.debug(params_arr)
-        logger.debug(percentile_params)
 
         # Calculate errors and update input params dict with results
         for i, (key, param) in enumerate(sorted(self.params.items())):
@@ -308,8 +341,5 @@ class Fitter():
             upper = (100*(per[1] - p))/p
 
             param["mc"] = [lower, upper]
-
-        logger.debug("Fitter.monte_carlo: updated params dict")
-        logger.debug(self.params)
 
         return self.params
