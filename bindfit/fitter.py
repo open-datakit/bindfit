@@ -2,8 +2,7 @@ from __future__ import division
 from __future__ import print_function
 
 from math import sqrt
-from copy import deepcopy
-import time
+from copy import deepcopy import time
 from itertools import product
 
 import numpy as np
