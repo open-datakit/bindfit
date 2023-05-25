@@ -9,13 +9,14 @@ import numpy.matlib as ml
 
 
 def ssr(residuals):
-    # Calculate the sum of squares of residuals
+    """Calculate the sum of squares of given residuals."""
     return np.sum(np.square(residuals))
 
 
 def cov(data, residuals, total=False):
+    """Calculate the covariance of a fit."""
     # TODO: TEMP
-    # Add axis to single y arrays for generalised calcs
+    # Add axis to any single y arrays for generalised calcs
     if hasattr(residuals, "shape") and len(residuals.shape) == 1:
         residuals = residuals[np.newaxis]
 
@@ -28,17 +29,18 @@ def cov(data, residuals, total=False):
 
 
 def rms(residuals, total=False):
+    """Calculate RMS errors from residuals.
+
+    Parameters
+    ----------
+    residuals : array_like
+        3D array of residuals corresponding to each input y
+
+    Returns
+    -------
+    rms : array
+        1D array of RMS values for each fitted y
     """
-    Calculate RMS errors from residuals
-
-    Arguments:
-        residuals: array  3D array of residuals corresponding to each input
-                          y
-
-    Returns:
-        array  1D array of RMS values for each fitted y
-    """
-
     # TODO: TEMP
     # Add axis to single y arrays for generalised calcs
     if hasattr(residuals, "shape") and len(residuals.shape) == 1:
@@ -46,10 +48,6 @@ def rms(residuals, total=False):
 
     r = np.array(residuals)
     sqr = np.square(r)
-    # meansqr = np.mean(sqr, axis=1)
-    # #rms = sqrt(sumsqr) - doesn't work when array elements
-    # are numpy.float64s!
-    # rms = [ sqrt(s) for s in meansqr ]
 
     if total:
         return np.sqrt(np.mean(sqr))
@@ -58,14 +56,19 @@ def rms(residuals, total=False):
 
 
 def normalise(data):
-    """
-    Normalise a 2D array of observations.
+    """Normalise a 2D array of observations.
 
-    Arguments:
-        data: ndarray  n x m array of n dependent variables, m observations
+    Subtracts initial values from observed data.
 
-    Returns:
-        ndarray  n x m array of normalised input data
+    Parameters
+    ----------
+    data : ndarray
+        N x M array of N dependent variables, M observations
+
+    Returns
+    -------
+    data_norm : ndarray
+        N x M array of normalised input data
     """
 
     # Create matrix of initial values to subtract from original matrix
@@ -75,15 +78,21 @@ def normalise(data):
 
 
 def denormalise(data, data_norm):
-    """
-    Denormalise a normalised dataset given original non-normalised input data
+    """Denormalise a dataset given original non-normalised input data.
 
-    Arguments:
-        data:      ndarray  original n x m array
-        data_norm: ndarray  normalised n x m array
+    Add back initial values to the observed data.
 
-    Returns:
-        ndarray  n x m array of denormalised input data_norm
+    Parameters
+    ----------
+    data : ndarray
+        Original non-normalised N x M array
+    data_norm : ndarray
+        Normalised N x M array
+
+    Returns
+    -------
+    data_denorm : ndarray
+        N x M array of denormalised input data_norm
     """
     # Create matrix of initial data values to add to fit
     initialmat = ml.repmat(data[:, 0][np.newaxis].T, 1, data.shape[1])
@@ -93,20 +102,22 @@ def denormalise(data, data_norm):
 
 
 def dilute(h0, data):
+    """Apply dilution factor to a dataset.
+
+    Parameters
+    ----------
+    h0 : ndarray
+        1D array of M observations of Host concentrations
+    data : ndarray
+        (ydata)
+        Y x M array of non-normalised observations of dependent variables
+
+    Returns
+    -------
+    y_dil : ndarray
+        Y x M array of input data with dilution factor applied
     """
-    Apply dilution factor to a dataset
-
-    Arguments:
-        xdata: ndarray  x x m array of m observations of independent variables
-        ydata: ndarray  y x m array of non-normalised observations of dependent
-                        variables
-
-    Returns:
-        ndarray  y x m array of input data with dilution factor applied
-    """
-
     y = data
-
     dilfac = h0 / h0[0]
     dilmat = ml.repmat(dilfac, y.shape[0], 1)
     y_dil = y * dilmat
@@ -114,9 +125,10 @@ def dilute(h0, data):
 
 
 def pad_2d(items, const=None):
-    # Pad a list to the specified size along second axis
-    # All items in list must be lists
+    """Pad a list to the specified size along second axis.
 
+    All items in list must be lists.
+    """
     # Find maximum 2nd axis size to pad to
     sizes = [len(i) for i in items]
     size = max(sizes)
@@ -135,6 +147,7 @@ def pad_2d(items, const=None):
 
 
 def unpad_2d(items, const=None):
+    """Remove padding on list applied by pad_2d."""
     # Check if passed list is a list of lists, do nothing if not
 
     unpadded = None
