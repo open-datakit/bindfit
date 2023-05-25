@@ -6,5 +6,6 @@ exclude =
     docs/source/conf.py,
     old,
     build,
-    dist
+    dist,
+    *.csv
 max-complexity = 10
