@@ -1,26 +1,34 @@
-"""
-" Module containing singletons representing fitter-specific minimisation
-" functions.
-"
-"""
+"""Binding constant minimisation function classes."""
 
 
 import numpy as np
 
 
-#
-# Base Function class template
-#
+class BaseFunction:
+    """Base Function abstract class.
 
+    To use, choose an objective function and plotting mixin and create a class
+    like this:
 
-class BaseFunction(object):
-    # To use, choose an objective function and plotting mixin and create a
-    # class like this:
-    # class Function(PlotMixin, ObjectiveMixin, BaseFunction)
-    #
-    # Note the mixins are placed before BaseFunction! This is necessary
-    # for the mixin functions to override BaseFunction template functions.
-    # See here: https://www.ianlewis.org/en/mixins-and-python
+    `class Function(PlotMixin, ObjectiveMixin, BaseFunction)`
+
+    Note all mixins are placed before BaseFunction. This is necessary for the
+    mixin functions to override BaseFunction template functions.
+
+    See here: https://www.ianlewis.org/en/mixins-and-python
+
+    Attributes
+    ----------
+    f : `function`
+        Fitting function, defined below e.g. nmr_1to1(...).
+    fitter : `string`
+        Fitting model name. Example: `nmr1to1`
+    normalise : `boolean`
+        If true, subtract initial values from Y data.
+    flavour : `string`
+        Fitting function flavour.
+        One of: `none`, `add`, `stat`, `noncoop`.
+    """
 
     def __init__(self, fitter, f=None, normalise=True, flavour="none"):
         self.f = f
@@ -28,22 +36,94 @@ class BaseFunction(object):
         self.normalise = normalise
         self.flavour = flavour
 
-    def objective(self, params, xdata, ydata, scalar=False, *args, **kwargs):
+    def objective(
+        self,
+        params,
+        xdata,
+        ydata,
+        scalar=False,
+        ydata_init=None,
+        fit_coeffs=None,
+        *args,
+        **kwargs,
+    ):
+        """Objective function definition.
+
+        Parameters
+        ----------
+        params : `dict`
+            Initial parameter value guesses.
+        datax : `ndarray`
+            X x M array of X independent variables, M observations.
+        datay : `ndarray`
+            Y x M array of Y dependent variables, M observations.
+        scalar: `bool`
+            If true, calculate and return only the sum of least squares (SSR).
+        ydata_init : `ndarray`, required if `scalar=False`
+            Array of initial Y data values, length Y, required if scalar=False.
+        fit_coeffs : `ndarray`, optional
+            If provided, use pre-calculated coefficient values.
+            Used for error calculations.
+
+        Returns
+        -------
+        ssr : float
+            Sum of least squares
+
+        OR
+
+        fit : `ndarray`
+            Y fit data, same dimensions as datay.
+        residuals : `ndarray`
+            Y residuals, same dimensions as datay.
+        coeffs_raw : `ndarray`
+            (1:1 - 1|1:2 - 2) x Y matrix of raw fit coefficients.
+        molefrac_raw : `ndarray`
+            (1:1 - 1|1:2 - 2) x Y matrix of raw molefractions.
+        coeffs : `ndarray`
+            Fit coefficients with first row of initial values added.
+        molefrac : `ndarray`
+            Molefractions with first row of initial values added.
+        """
         pass
 
     def format_x(self, xdata):
         pass
 
     def format_coeffs(self, coeffs, ydata_init, h0_init=None):
+        """Calculate "real" coefficients from their raw values and an input
+        dataset.
+
+        Calculate and add first row of coefficients using excluded initial
+        values.
+
+        Parameters
+        ----------
+        ydata_init : `ndarray`
+            1 x M array of non-normalised initial observations of dependent
+            variables
+        coeffs : `ndarray`
+            (1:1 - 1|1:2 - 2) x Y matrix of raw fit coefficients.
+        ydata_init : `ndarray`
+            Initial input Y data.
+            Y x M array of Y dependent variables, M observations.
+        h0_init : float
+            Optional initial h0 value, if provided ydata_init is divided by
+            this value before the calculation
+
+        Returns
+        -------
+        coeffs : `ndarray`
+            (1:1 - 2|1:2 - 3) x Y matrix of processed fit coefficients.
+        """
         pass
 
     def format_params(self, params_init, params_raw, err):
         pass
 
 
-#
+# =============================================================================
 # Objective function mixins
-#
 
 
 class BindingMixin:
@@ -58,28 +138,13 @@ class BindingMixin:
         *args,
         **kwargs,
     ):
-        """
-        Objective function:
+        """Binding constant objective function.
+
         Performs least squares regression fitting via matrix division on
         provided NMR/UV dataset for a given binding constant K, and returns its
         sum of least squares for optimisation OR full parameters, residuals and
         fitted results.
-
-        Arguments:
-            params:         dict     Parameter guess
-            datax:          ndarray  x x m array of x independent variables,
-                                     m obs
-            datay:      ndarray  y x m array of y dependent variables, m obs
-            scalar:         bool     Calc and return only ssr
-            ydata_init:     ndarray  Array of initial y data values, length y,
-                                     required if scalar=False
-            fit_coeffs:     ndarray  Use pre-calculated coefficient values,
-                                     used in error calculations
-
-        Returns:
-            float:  Sum of least squares
         """
-
         # Calculate predicted HG complex concentrations for this set of
         # parameters and concentrations
         molefrac_raw, molefrac = self.f(params, xdata, flavour=self.flavour)
@@ -92,27 +157,26 @@ class BindingMixin:
             coeffs_raw = fit_coeffs
         else:
             # Solve by matrix division - linear regression by least squares
-            # Equivalent to
-            # << coeffs = molefrac\ydata (EA = HG\DA) >> in Matlab
-            coeffs_raw, _, _, _ = np.linalg.lstsq(molefrac_raw.T, ydata.T)
+            # This is equivalent to
+            # << coeffs = molefrac\ydata (EA = HG\DA) >>
+            # in Matlab
+            coeffs_raw, _, _, _ = np.linalg.lstsq(
+                molefrac_raw.T, ydata.T, rcond=-1
+            )
 
-        # Restrict UV coefficients to +ve values when normalised
+        # Restrict UV coefficients to positive values when normalised
         if not self.normalise and "uv" in self.fitter:
-            # Normalised UV fit - removing negative coeffs
             coeffs_raw[coeffs_raw < 0] = 0
 
-        # molefrac_raw fitted, calc'd coeffs_raw
-
         # Calculate data from fitted parameters
-        # (will be normalised if input data was norm'd)
-        # Result is column matrix - transform this into same shape as input
+        # (will be normalised if input data was normalised)
+        # Result is column matrix - transpose this into same shape as input
         # data array
         fit = molefrac_raw.T.dot(coeffs_raw).T
 
         # Calculate residuals (fitted data - input data)
         residuals = fit - ydata
 
-        # Transpose any column-matrices to rows
         if scalar:
             return np.square(residuals).sum()
         else:
@@ -120,6 +184,7 @@ class BindingMixin:
             coeffs = self.format_coeffs(
                 coeffs_raw, ydata_init=ydata_init, h0_init=xdata[0][0]
             )
+
             return fit, residuals, coeffs_raw, molefrac_raw, coeffs, molefrac
 
     def format_x(self, xdata):
@@ -128,21 +193,6 @@ class BindingMixin:
         return g0 / h0
 
     def format_coeffs(self, coeffs, ydata_init, h0_init=None):
-        """
-        Calculate "real" coefficients from their raw values and an input
-        dataset
-
-        Arguments:
-            ydata_init: ndarray  1 x m array of non-normalised initial
-                                 observations
-                                 of dependent variables
-            coeffs:     ndarray
-            h0_init:    float    Optional initial h0 value,
-                                 if provided ydata_init
-                                 is divided by this value
-                                 before the calculation
-        """
-
         # H coefficients
         h = np.copy(ydata_init)
         coeffs = np.array(coeffs)
@@ -205,8 +255,7 @@ class AggMixin:
         *args,
         **kwargs,
     ):
-        """ """
-
+        """Dimer aggregation objective function."""
         # Calculate predicted complex concentrations for this set of
         # parameters and concentrations
         molefrac_raw, molefrac = self.f(params, xdata, flavour=self.flavour)
@@ -245,25 +294,10 @@ class AggMixin:
         return xdata[0]
 
     def format_coeffs(self, coeffs, ydata_init, h0_init=None):
-        """
-        Calculate "real" coefficients from their raw values and an input
-        dataset
-
-        Arguments:
-            ydata_init: ndarray  1 x m array of non-normalised initial
-                                 observations
-                                 of dependent variables
-            coeffs:     ndarray
-            h0_init:    float    Optional initial h0 value,
-                                 if provided ydata_init
-                                 is divided by this value
-                                 before the calculation
-        """
         # H coefficients
-        # h = np.copy(ydata_init)
         coeffs = np.array(coeffs)
 
-        # TODO: proper coefficient formatting here
+        # TODO: Proper coefficient formatting here
 
         return coeffs
 
@@ -291,9 +325,8 @@ class AggMixin:
         return params
 
 
-#
+# =============================================================================
 # Final class definitions
-#
 
 
 class FunctionBinding(BindingMixin, BaseFunction):
@@ -304,12 +337,13 @@ class FunctionAgg(AggMixin, BaseFunction):
     pass
 
 
-#
-# log(inhibitor) vs. normalised response test def
-#
+# =============================================================================
+# log(inhibitor) vs. normalised response test definition
 
 
 class FunctionInhibitorResponse(FunctionBinding):
+    """log(inhibitor) vs. normalised response test definition."""
+
     def objective(self, params, xdata, ydata, scalar=False, *args, **kwargs):
         yfit = self.f(params, xdata)
         yfit = yfit[np.newaxis]
@@ -329,10 +363,7 @@ class FunctionInhibitorResponse(FunctionBinding):
 
 
 def inhibitor_response(params, xdata, *args, **kwargs):
-    """
-    Calculates predicted [HG] given data object parameters as input.
-    """
-
+    """Calculates predicted [HG] given data object parameters as input."""
     # Params sorted in alphabetical order
     hillslope = params[0]
     logIC50 = params[1]
@@ -344,21 +375,12 @@ def inhibitor_response(params, xdata, *args, **kwargs):
     return response
 
 
-#
-# End inhibitor vs. response test func
-#
-
-
-#
-# Function definitions
-#
+# =============================================================================
+# Fitting function definitions
 
 
 def nmr_1to1(params, xdata, *args, **kwargs):
-    """
-    Calculates predicted [HG] given data object parameters as input.
-    """
-
+    """Calculates predicted [HG] given data object parameters as input."""
     k = params[0]
 
     h0 = xdata[0]
@@ -389,10 +411,7 @@ def nmr_1to1(params, xdata, *args, **kwargs):
 
 
 def uv_1to1(params, xdata, *args, **kwargs):
-    """
-    Calculates predicted [HG] given data object parameters as input.
-    """
-
+    """Calculates predicted [HG] given data object parameters as input."""
     k = params[0]
 
     h0 = xdata[0]
@@ -418,9 +437,8 @@ def uv_1to1(params, xdata, *args, **kwargs):
 
 
 def uv_1to2(params, xdata, flavour="none", *args, **kwargs):
-    """
-    Calculates predicted [HG] and [HG2] given data object and binding constants
-    as input.
+    """Calculates predicted [HG] and [HG2] given data object and binding
+    constants as input.
     """
 
     k11 = params[0]
@@ -473,9 +491,8 @@ def uv_1to2(params, xdata, flavour="none", *args, **kwargs):
 
 
 def nmr_1to2(params, xdata, flavour="none", *args, **kwargs):
-    """
-    Calculates predicted [HG] and [HG2] given data object and binding constants
-    as input.
+    """Calculates predicted [HG] and [HG2] given data object and binding
+    constants as input.
     """
 
     k11 = params[0]
@@ -528,11 +545,9 @@ def nmr_1to2(params, xdata, flavour="none", *args, **kwargs):
 
 
 def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
+    """Calculates predicted [HG] and [H2G] given data object and binding
+    constants as input.
     """
-    Calculates predicted [HG] and [H2G] given data object and binding constants
-    as input.
-    """
-
     k11 = params[0]
     if flavour == "noncoop" or flavour == "stat":
         k12 = k11 / 4
@@ -585,11 +600,9 @@ def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
 
 
 def uv_2to1(params, xdata, flavour="none"):
+    """Calculates predicted [HG] and [H2G] given data object and binding
+    constants as input.
     """
-    Calculates predicted [HG] and [H2G] given data object and binding constants
-    as input.
-    """
-
     # Convenience
     k11 = params[0]
     if flavour == "noncoop" or flavour == "stat":
@@ -643,11 +656,9 @@ def uv_2to1(params, xdata, flavour="none"):
 
 
 def nmr_dimer(params, xdata, *args, **kwargs):
-    """
-    Calculates predicted [H] [Hs] and [He] given data object and binding
+    """Calculates predicted [H] [Hs] and [He] given data object and binding
     constant as input.
     """
-
     ke = params[0]
     h0 = xdata[0]
 
@@ -676,11 +687,9 @@ def nmr_dimer(params, xdata, *args, **kwargs):
 
 
 def uv_dimer(params, xdata, *args, **kwargs):
-    """
-    Calculates predicted [H] [Hs] and [He] given data object and binding
+    """Calculates predicted [H] [Hs] and [He] given data object and binding
     constant as input.
     """
-
     ke = params[0]
     h0 = xdata[0]
 
@@ -712,12 +721,9 @@ def uv_dimer(params, xdata, *args, **kwargs):
 
 
 def nmr_coek(params, xdata, *args, **kwargs):
+    """Calculates predicted [H] [Hs] and [He] given data object and binding
+    constants as input.
     """
-    Calculates predicted [H] [Hs] and [He]
-    given data object and binding constants
-    as input.
-    """
-
     ke = params[0]
     rho = params[1]
 
@@ -764,12 +770,9 @@ def nmr_coek(params, xdata, *args, **kwargs):
 
 
 def uv_coek(params, xdata, *args, **kwargs):
+    """Calculates predicted [H] [Hs] and [He] given data object and binding
+    constants as input.
     """
-    Calculates predicted [H] [Hs] and [He]
-    given data object and binding constants
-    as input.
-    """
-
     ke = params[0]
     rho = params[1]
 
@@ -820,14 +823,21 @@ def uv_coek(params, xdata, *args, **kwargs):
     return mf_fit, mf
 
 
-def construct(key, normalise=True, flavour="none"):
-    """
-    Constructs and returns requested function object.
+# =============================================================================
+# Function class constructor helper
 
-    Arguments:
-        key:     string  Unique fitter function reference string, exposed by
-                         formatter.fitter_list
-        flavour: string  Fitter flavour option, if selected
+
+def construct(key, normalise=True, flavour="none"):
+    """Constructs and returns the requested function object.
+
+    Parameters
+    ----------
+    key : `string`
+        Unique fitter function reference string, exposed by
+        formatter.fitter_list
+    flavour : `string`
+        Fitting function flavour, if selected.
+        One of: `none`, `add`, `stat`, `noncoop`.
     """
 
     args_select = {
