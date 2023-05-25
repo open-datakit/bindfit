@@ -4,14 +4,17 @@ import numpy as np
 
 from bindfit import functions, fitter, formatter
 
+import pprint
+
+
 params = {
     "k": {
         "init": 100.0,
         "bounds": {
             "min": 0.0,
             "max": None,
-        }
-    }
+        },
+    },
 }
 
 data = np.genfromtxt("input.csv", delimiter=",", skip_header=1)
@@ -26,18 +29,9 @@ function = functions.construct(
     flavour="none",
 )
 
-fitter = fitter.Fitter(
-    data_x,
-    data_y,
-    function,
-    normalise=True,
-    params=params
-)
+fitter = fitter.Fitter(data_x, data_y, function, normalise=True, params=params)
 
-fitter.run_scipy(
-    params,
-    method="Nelder-Mead"
-)
+fitter.run_scipy(params, method="Nelder-Mead")
 
 response = formatter.fit(
     fitter="nmr1to1",
@@ -61,5 +55,4 @@ response = formatter.fit(
     flavour="none",
 )
 
-import pprint
 pprint.pprint(response)
