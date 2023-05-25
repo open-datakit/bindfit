@@ -116,15 +116,23 @@ class Fitter:
         ydata=None,
         method="Nelder-Mead",
     ):
-        """
-        Arguments:
-            params_init: dict  Initial parameter guesses for fitter
-            save:        bool  If True, process and save optimisation results
-                               If False, return raw optimised params
-            xdata:       array Modified input array
-            ydata:       array Modified input array
-                               (used with save=False for Monte Carlo error
-                               calculation)
+        """Fit data given initial parameter guesses.
+
+        Parameters
+        ----------
+        params_init : `dict`
+            Initial parameter guesses for fitter.
+        save : `boolean`
+            If True, process and save optimisation results.
+            If False, return raw optimised params.
+        xdata : `ndarray`, optional
+            Modified input array.
+            (used with save=False for Monte Carlo error calculation)
+        ydata : `ndarray`, optional
+            Modified input array.
+            (used with save=False for Monte Carlo error calculation)
+        method : `string`, optional
+            The fitting method to use.
         """
         # Set input data
         x = self.xdata if xdata is None else xdata
@@ -149,9 +157,9 @@ class Fitter:
         )
         toc = time.perf_counter()
 
-        # Calculate fitted data with optimised parameters
+        # Calculate fitted data with optimised parameters.
         # Force molefraction (not free concentration) calculation for proper
-        # fitting in UV models
+        # fitting in UV models.
         ydata_init = self.ydata[:, 0] if ydata is None else ydata[:, 0]
         (
             fit_norm,
@@ -208,13 +216,15 @@ class Fitter:
             return results
 
     def statistics(self, params, fit, coeffs, residuals):
-        """
-        Return fit statistics after parameter optimisation
+        """Calculate fit statistics.
 
-        Returns:
-            Asymptotic error for non-linear parameter estimate
-            # Standard deviation of calculated y
-            # Standard deviation of calculated coefficients
+        Returns
+        -------
+        ci : `float`
+            Confidence interval.
+            Asymptotic error for non-linear parameter estimate.
+        # Standard deviation of calculated y
+        # Standard deviation of calculated coefficients
         """
         # Calculate deLevie uncertainty
         d = np.float64(1e-6)  # delta
@@ -278,20 +288,21 @@ class Fitter:
         return ci_percent
 
     def calc_monte_carlo(self, n_iter, xdata_error, ydata_error, method=None):
+        """Calculate fit error using Monte Carlo method.
+
+        Parameters
+        ----------
+        n_iter : `int`
+            Number of Monte Carlo iterations.
+        xdata_error : `ndarray`
+            N array of N percentage errors corresponding to N rows of xdata.
+        ydata_error : `float`
+            Float corresponding to N percentage error on each row of ydata.
+
+        Returns
+        -------
+        Something.
         """
-        Calculate error on fit using a Monte Carlo method
-
-        Arguments:
-            n_iter:      Number of Monte Carlo iterations
-            xdata_error: n array of n percentage errors corresponding to n
-                         rows of xdata
-            ydata_error: Float corresponding to n percentage error on each
-                         row of ydata
-
-        Returns:
-            something
-        """
-
         xdata = self.xdata
         ydata = self.ydata
 
