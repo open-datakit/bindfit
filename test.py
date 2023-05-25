@@ -7,6 +7,7 @@ import bindfit
 import pprint
 
 
+# Parameters and options
 params = {
     "k": {
         "init": 100.0,
@@ -17,30 +18,38 @@ params = {
     },
 }
 
-data = np.genfromtxt("input.csv", delimiter=",", skip_header=1)
+fitter_name = "nmr1to1"
+method = "Nelder-Mead"
+normalise = True
+dilute = False
+flavour = "none"
 
+# Load raw data
+data = np.genfromtxt("input.csv", delimiter=",", skip_header=1)
 # Bindfit expects each variable as rows
 data_x = np.transpose(data[:, :2])
 data_y = np.transpose(data[:, 2:])
 
-dilute = False
+# Apply dilution correction
+# TODO: Think about where this should go - fitter or function?
+# Or just apply it before the fit?
 if dilute:
     data_y = bindfit.helpers.dilute(data_x[0], data_y)
 
 function = bindfit.functions.construct(
-    "nmr1to1",
-    normalise=True,
-    flavour="none",
+    fitter_name,
+    normalise=normalise,
+    flavour=flavour,
 )
 
 fitter = bindfit.fitter.Fitter(
-    data_x, data_y, function, normalise=True, params=params
+    data_x, data_y, function, normalise=normalise, params=params
 )
 
-fitter.run_scipy(params, method="Nelder-Mead")
+fitter.run_scipy(params, method=method)
 
 response = bindfit.formatter.fit(
-    fitter="nmr1to1",
+    fitter=fitter_name,
     data={
         "data": {
             "x": data_x,
@@ -55,10 +64,10 @@ response = bindfit.formatter.fit(
     coeffs=fitter.coeffs,
     molefrac=fitter.molefrac,
     time=fitter.time,
-    dilute=False,
-    normalise=True,
-    method="Nelder-Mead",
-    flavour="none",
+    dilute=dilute,
+    normalise=normalise,
+    method=method,
+    flavour=flavour,
 )
 
 pprint.pprint(response)
