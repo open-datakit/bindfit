@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from bindfit import functions, fitter, formatter
+import bindfit
 
 import pprint
 
@@ -23,17 +23,23 @@ data = np.genfromtxt("input.csv", delimiter=",", skip_header=1)
 data_x = np.transpose(data[:, :2])
 data_y = np.transpose(data[:, 2:])
 
-function = functions.construct(
+dilute = False
+if dilute:
+    data_y = bindfit.helpers.dilute(data_x[0], data_y)
+
+function = bindfit.functions.construct(
     "nmr1to1",
     normalise=True,
     flavour="none",
 )
 
-fitter = fitter.Fitter(data_x, data_y, function, normalise=True, params=params)
+fitter = bindfit.fitter.Fitter(
+    data_x, data_y, function, normalise=True, params=params
+)
 
 fitter.run_scipy(params, method="Nelder-Mead")
 
-response = formatter.fit(
+response = bindfit.formatter.fit(
     fitter="nmr1to1",
     data={
         "data": {
