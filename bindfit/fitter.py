@@ -12,8 +12,7 @@ from . import helpers
 
 
 class Fitter:
-    """
-    Fitter class for optimising binding constant functions
+    """Fitter class for optimising binding constant functions.
 
     Parameters
     ----------
