@@ -13,10 +13,6 @@ from copy import deepcopy
 
 from . import helpers
 
-import logging
-
-logger = logging.getLogger("supramolecular")
-
 
 def fitter_list():
     """

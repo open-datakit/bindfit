@@ -1,16 +1,11 @@
-"""
-" Miscellaneous helper functions, mostly for data munging
+"""Miscellaneous fitting helper functions.
+
+Mainly statistics calculations and data munging.
 """
 
-from __future__ import division
-from __future__ import print_function
 
 import numpy as np
 import numpy.matlib as ml
-
-import logging
-
-logger = logging.getLogger("supramolecular")
 
 
 def ssr(residuals):
@@ -49,8 +44,6 @@ def rms(residuals, total=False):
     if hasattr(residuals, "shape") and len(residuals.shape) == 1:
         residuals = residuals[np.newaxis]
 
-    logger.debug("helpers.rms: called")
-
     r = np.array(residuals)
     sqr = np.square(r)
     # meansqr = np.mean(sqr, axis=1)
@@ -74,10 +67,6 @@ def normalise(data):
     Returns:
         ndarray  n x m array of normalised input data
     """
-
-    logger.debug("helpers.normalise: called")
-    logger.debug("helpers.normalise: input data")
-    logger.debug(data)
 
     # Create matrix of initial values to subtract from original matrix
     initialmat = ml.repmat(data.T[0, :], len(data.T), 1).T

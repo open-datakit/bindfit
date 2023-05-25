@@ -4,14 +4,8 @@
 "
 """
 
-from __future__ import division
-from __future__ import print_function
 
 import numpy as np
-
-import logging
-
-logger = logging.getLogger("supramolecular")
 
 
 #
@@ -86,11 +80,6 @@ class BindingMixin:
             float:  Sum of least squares
         """
 
-        logger.debug("Function.objective: params, xdata shape, ydata shape")
-        logger.debug(params)
-        logger.debug(xdata.shape)
-        logger.debug(ydata.shape)
-
         # Calculate predicted HG complex concentrations for this set of
         # parameters and concentrations
         molefrac_raw, molefrac = self.f(params, xdata, flavour=self.flavour)
@@ -113,17 +102,12 @@ class BindingMixin:
             coeffs_raw[coeffs_raw < 0] = 0
 
         # molefrac_raw fitted, calc'd coeffs_raw
-        logger.debug(molefrac_raw)
-        logger.debug(coeffs_raw)
 
         # Calculate data from fitted parameters
         # (will be normalised if input data was norm'd)
         # Result is column matrix - transform this into same shape as input
         # data array
         fit = molefrac_raw.T.dot(coeffs_raw).T
-
-        logger.debug("Function.objective: fit shape")
-        logger.debug(fit.shape)
 
         # Calculate residuals (fitted data - input data)
         residuals = fit - ydata
@@ -162,9 +146,6 @@ class BindingMixin:
         # H coefficients
         h = np.copy(ydata_init)
         coeffs = np.array(coeffs)
-        logger.debug("FORMAT_COEFFS: H, COEFFS")
-        logger.debug(h)
-        logger.debug(coeffs)
 
         if self.flavour == "add" or self.flavour == "stat":
             # Preprocess coeffs for additive flavours
@@ -226,11 +207,6 @@ class AggMixin:
     ):
         """ """
 
-        logger.debug("Function.objective: params, xdata shape, ydata shape")
-        logger.debug(params)
-        logger.debug(xdata.shape)
-        logger.debug(ydata.shape)
-
         # Calculate predicted complex concentrations for this set of
         # parameters and concentrations
         molefrac_raw, molefrac = self.f(params, xdata, flavour=self.flavour)
@@ -251,9 +227,6 @@ class AggMixin:
         # Result is column matrix - transform this into same shape as input
         # data array
         fit = hmat.T.dot(coeffs_raw).T
-
-        logger.debug("Function.objective: fit")
-        logger.debug(fit)
 
         # Calculate residuals (fitted data - input data)
         residuals = fit - ydata
@@ -338,29 +311,15 @@ class FunctionAgg(AggMixin, BaseFunction):
 
 class FunctionInhibitorResponse(FunctionBinding):
     def objective(self, params, xdata, ydata, scalar=False, *args, **kwargs):
-        logger.debug(
-            "FunctionInhibitorResponse.objective: params, xdata, ydata"
-        )
-        logger.debug(params)
-        logger.debug(xdata)
-        logger.debug(ydata)
-
         yfit = self.f(params, xdata)
         yfit = yfit[np.newaxis]
 
         # Calculate residuals (fitted data - input data)
         residuals = yfit - ydata
 
-        logger.debug("FunctionInhibitorResponse.objective: yfit")
-        logger.debug(yfit)
-
         if scalar:
-            logger.debug("FIR.objective: returning residuals sum:")
-            logger.debug(np.square(residuals).sum())
             return np.square(residuals).sum()
         else:
-            logger.debug("FIR.objective: returning detailed fit:")
-            # Transpose any column-matrices to rows
             return (
                 yfit,
                 residuals,
@@ -519,22 +478,11 @@ def nmr_1to2(params, xdata, flavour="none", *args, **kwargs):
     as input.
     """
 
-    logger.debug("FLAVOUR RECEIVED NMR1TO2:")
-    logger.debug(flavour)
-
     k11 = params[0]
     if flavour == "noncoop" or flavour == "stat":
         k12 = k11 / 4
-        logger.debug("FLAVOUR: noncoop or stat")
-        logger.debug("k11, k12")
-        logger.debug(k11)
-        logger.debug(k12)
     else:
         k12 = params[1]
-        logger.debug("FLAVOUR: none or add")
-        logger.debug("k11, k12")
-        logger.debug(k11)
-        logger.debug(k12)
 
     h0 = xdata[0]
     g0 = xdata[1]
@@ -570,11 +518,9 @@ def nmr_1to2(params, xdata, flavour="none", *args, **kwargs):
     h = 1 - hg - hg2
 
     if flavour == "add" or flavour == "stat":
-        logger.debug("FLAVOUR: add or stat")
         hg_add = hg + 2 * hg2
         hg_mat_fit = np.vstack((h, hg_add))
     else:
-        logger.debug("FLAVOUR: none or noncoop")
         hg_mat_fit = np.vstack((h, hg, hg2))
 
     hg_mat = np.vstack((h, hg, hg2))
@@ -590,16 +536,8 @@ def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
     k11 = params[0]
     if flavour == "noncoop" or flavour == "stat":
         k12 = k11 / 4
-        logger.debug("FLAVOUR: noncoop or stat")
-        logger.debug("k11, k12")
-        logger.debug(k11)
-        logger.debug(k12)
     else:
         k12 = params[1]
-        logger.debug("FLAVOUR: none or add")
-        logger.debug("k11, k12")
-        logger.debug(k11)
-        logger.debug(k12)
 
     h0 = xdata[0]
     g0 = xdata[1]
@@ -637,11 +575,9 @@ def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
     h = 1 - hg - h2g
 
     if flavour == "add" or flavour == "stat":
-        logger.debug("FLAVOUR: add or stat")
         hg_add = hg + 2 * h2g
         hg_mat_fit = np.vstack((h, hg_add))
     else:
-        logger.debug("FLAVOUR: none or noncoop")
         hg_mat_fit = np.vstack((h, hg, h2g))
 
     hg_mat = np.vstack((h, hg, h2g))
