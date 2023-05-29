@@ -48,26 +48,33 @@ fitter = bindfit.fitter.Fitter(
 
 fitter.run_scipy(params, method=method)
 
-response = bindfit.formatter.fit(
-    fitter=fitter_name,
-    data={
-        "data": {
-            "x": data_x,
-            "y": data_y,
-        },
+summary = {
+    "fitter": fitter_name,
+    "fit": {
+        "y": fitter.fit,
+        "coeffs_raw": fitter.coeffs_raw,
+        "coeffs": fitter.coeffs,
+        "molefrac_raw": fitter.molefrac_raw,
+        "molefrac": fitter.molefrac,
+        "params": fitter.params,
+        "n_y": np.array(fitter.fit).size,
+        "n_params": len(fitter.params) + np.array(fitter.coeffs_raw).size,
     },
-    y=fitter.fit,
-    params=fitter.params,
-    residuals=fitter.residuals,
-    coeffs_raw=fitter.coeffs_raw,
-    molefrac_raw=fitter.molefrac_raw,
-    coeffs=fitter.coeffs,
-    molefrac=fitter.molefrac,
-    time=fitter.time,
-    dilute=dilute,
-    normalise=normalise,
-    method=method,
-    flavour=flavour,
-)
+    "qof": {
+        "residuals": fitter.residuals,
+        "ssr": bindfit.helpers.ssr(fitter.residuals),
+        "rms": bindfit.helpers.rms(fitter.residuals),
+        "cov": bindfit.helpers.cov(data_y, fitter.residuals),
+        "rms_total": bindfit.helpers.rms(fitter.residuals, total=True),
+        "cov_total": bindfit.helpers.cov(data_y, fitter.residuals, total=True),
+    },
+    "time": fitter.time,
+    "options": {
+        "dilute": dilute,
+        "normalise": normalise,
+        "method": method,
+        "flavour": flavour,
+    },
+}
 
-pprint.pprint(response)
+pprint.pprint(summary)
