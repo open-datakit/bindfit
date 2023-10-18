@@ -166,8 +166,8 @@ def fit(datapackage):
                 key: {
                     "init": param["value"],
                     "bounds": {
-                        "min": param["lowerBound"],
-                        "max": param["upperBound"],
+                        "min": param.get("lowerBound", None),
+                        "max": param.get("upperBound", None),
                     },
                 }
             }
