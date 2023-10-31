@@ -3,8 +3,12 @@
 # TODO: Helper functions should be split out into own library eventually
 
 
-import pandas as pd
 import numpy as np
+
+from opendatafit.datapackage import (
+    get_algorithm_io_resource,
+    tabular_data_resource_to_dataframe,
+)
 
 from . import helpers, functions
 from .fitter import Fitter
@@ -15,60 +19,6 @@ MODEL_COEFFS_MAP = {
     "nmr1to1": ["H", "HG"],
     "nmr1to2": ["H", "HG", "HG2"],
 }
-
-
-def find(array, key, value):
-    """Equivalent of JS find() helper"""
-    for i in array:
-        if i[key] == value:
-            return i
-
-    return None
-
-
-def find_by_name(array, name):
-    return find(array, "name", name)
-
-
-def get_algorithm_io_resource(datapackage, algorithm_name, io_type, io_name):
-    """Get an algorithm input resource by name
-
-    Parameters
-    ----------
-    datapackage: `dict`
-        Bindfit datapackage object
-    algorithm: `string`
-        Name of algorithm
-    io_type: `string` - "input" | "output"
-        Whether to return an input or output resource
-    input_name: `string`
-        Name of input/output to return
-
-    Returns
-    -------
-    resource: `dict` or `dict of dicts` or None
-        Resource object, dict of resource objects or None if no matching
-        resources
-    """
-    algorithm = find_by_name(datapackage["algorithms"], algorithm_name)
-    resource = find_by_name(algorithm[io_type + "s"], io_name)["resource"]
-
-    if isinstance(resource, str):
-        return find_by_name(datapackage["resources"], resource)
-    elif isinstance(resource, dict):
-        return {
-            key: find_by_name(datapackage["resources"], r)
-            for key, r in resource.items()
-        }
-
-
-def tabular_data_resource_to_dataframe(resource):
-    """Convert Frictionless tabular data resource to pandas DataFrame"""
-    df = pd.DataFrame.from_dict(resource["data"])
-    # Reorder columns by schema field order
-    cols = [field["name"] for field in resource["schema"]["fields"]]
-    df = df[cols]
-    return df
 
 
 def fit_to_json(data_resource, fit):
