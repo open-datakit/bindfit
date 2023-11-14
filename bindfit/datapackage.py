@@ -19,9 +19,13 @@ MODEL_COEFFS_MAP = {
     "nmr1to1": ["H", "HG"],
     "nmr1to2": ["H", "HG", "HG2"],
     "nmr2to1": ["H", "HG", "H2G"],
+    "nmrdimer": ["H", "Hs", "He"],
+    "nmrcoek": ["H", "Hs", "He"],
     "uv1to1": ["H", "HG"],
     "uv1to2": ["H", "HG", "HG2"],
     "uv2to1": ["H", "HG", "H2G"],
+    "uvdimer": ["H", "Hs", "He"],
+    "uvcoek": ["H", "Hs", "He"],
 }
 
 
