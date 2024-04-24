@@ -1,3 +1,3 @@
-__all__ = ["fitter", "functions", "helpers", "datapackage"]
+__all__ = ["fitter", "functions", "helpers"]
 
-from . import fitter, functions, helpers, datapackage
+from . import fitter, functions, helpers
