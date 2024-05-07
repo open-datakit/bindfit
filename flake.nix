@@ -41,10 +41,10 @@
         buildInputs = [
           opendatafit
           pkgs.pre-commit
-          pkgs.python310
-          pkgs.python310Packages.numpy
-          pkgs.python310Packages.scipy
-          pkgs.python310Packages.pandas
+          pkgs.python311
+          pkgs.python311Packages.numpy
+          pkgs.python311Packages.scipy
+          pkgs.python311Packages.pandas
         ];
       };
     });
