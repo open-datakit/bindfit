@@ -361,3 +361,12 @@ class Fitter:
             param["mc"] = [lower, upper]
 
         return self.params
+
+    def fit_curve(self):
+        """Return fit curve in JSON table format"""
+        print("fit", self.fit)
+        print("xdata", self.xdata)
+        print("ydata", self.ydata)
+
+    def fit_residuals(self):
+        pass
