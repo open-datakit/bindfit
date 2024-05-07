@@ -16,14 +16,13 @@ class Fitter:
 
     Parameters
     ----------
-    xdata : array_like, 2xN matrix
-        Host/Guest data matrix, one variable per row
-    ydata : array_like, MxN matrix
-        Observed data matrix, one variable per row
+    data : pandas.DataFrame, MxN matrix
+        Input data matrix with M columns of index variables (e.g. Host, Guest) 
+        and N columns observed data variables
     function : function
         The fitter function to use for optimisation
     normalise : boolean, optional
-        Whether to normalise the x data before fitting, defaults to True
+        Whether to subtract initial x values before fitting, defaults to True
     params : dict
         Dict of initial values for parameters to pass to the fitting func
         Value of parameter keys depends on the fitting function selected
@@ -47,7 +46,9 @@ class Fitter:
     function : function
         The fitter function to use for optimisation
     normalise : boolean, optional
-        Whether to normalise the x data before fitting, defaults to True
+        Whether to normalise the x data before fitting
+    dilution_correction: boolean, optional
+        Whether to apply dilution correction to the y data before fitting
     params : dict
         Dict of initial values for parameters passed to the fitting func
         See above for example format
@@ -65,18 +66,39 @@ class Fitter:
 
     def __init__(
         self,
-        xdata,
-        ydata,
+        data,
         function,
-        normalise=True,
-        params=None,
+        params=None,  # Initial parameter guesses for the fit
+        normalise=True,  # Whether to subtract initial values before fitting
+        dilution_correction=False,  # Whether to apply dilution correction before fitting
     ):
-        self.xdata = xdata  # Original input data, no processing applied
-        self.ydata = ydata  # Original input data, no processing applied
+        # Data in pandas DataFrame format, with x columns set as index
+        self.data = data
+
+        # Munge data into old expected format
+        # TODO: Ideally should modify other functions to use dataframe format
+        # But this is the quickest solution for the moment
+        # Bindfit expects each variable as row
+        # np.asarray(list()) required to convert index list of tuples to normal
+        # numpy matrix
+        # xdata : array_like, 2xN matrix
+        #     Host/Guest data matrix, one variable per row
+        # ydata : array_like, MxN matrix
+        #     Observed data matrix, one variable per row
+        self.xdata = np.transpose(np.asarray(list(data.index.to_numpy())))
+        self.ydata = np.transpose(data.to_numpy())
+
         self.function = function
 
         # Fitter options
         self.normalise = normalise
+        self.dilution_correction = dilution_correction
+
+        # Apply dilution correction
+        # TODO: Does this belong here? Or should it only be applied temporarily
+        # during the fit?
+        if dilution_correction:
+            self.ydata = helpers.dilute(self.xdata[0], self.ydata)
 
         # Populated on Fitter.run
         self._params_raw = None
