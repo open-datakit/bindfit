@@ -385,10 +385,13 @@ class Fitter:
         return self.params
 
     def fit_curve(self):
-        """Return fit curve in JSON table format"""
-        print("fit", self.fit)
-        print("xdata", self.xdata)
-        print("ydata", self.ydata)
+        """Return fit curve in JSON record format"""
+        fit_curve = self.data.copy(deep=True)
+        fit_curve[:] = np.transpose(self.fit)
+        return fit_curve.reset_index().to_dict(orient="records")
 
     def fit_residuals(self):
-        pass
+        """Return fit residuals in JSON record format"""
+        fit_residuals = self.data.copy(deep=True)
+        fit_residuals[:] = np.transpose(self.fit - self.ydata)
+        return fit_residuals.reset_index().to_dict(orient="records")
