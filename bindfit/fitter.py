@@ -1,6 +1,7 @@
 import time
 from itertools import product
 
+import pandas as pd
 import numpy as np
 import numpy.matlib as ml
 
@@ -17,7 +18,7 @@ class Fitter:
     Parameters
     ----------
     data : pandas.DataFrame, MxN matrix
-        Input data matrix with M columns of index variables (e.g. Host, Guest) 
+        Input data matrix with M columns of index variables (e.g. Host, Guest)
         and N columns observed data variables
     function : function
         The fitter function to use for optimisation
@@ -68,9 +69,12 @@ class Fitter:
         self,
         data,
         function,
-        params=None,  # Initial parameter guesses for the fit
-        normalise=True,  # Whether to subtract initial values before fitting
-        dilution_correction=False,  # Whether to apply dilution correction before fitting
+        # Initial parameter guesses for the fit
+        params=None,
+        # Whether to subtract initial values before fitting
+        normalise=True,
+        # Whether to apply dilution correction before fitting
+        dilution_correction=False,
     ):
         # Data in pandas DataFrame format, with x columns set as index
         self.data = data
@@ -395,3 +399,26 @@ class Fitter:
         fit_residuals = self.data.copy(deep=True)
         fit_residuals[:] = np.transpose(self.fit - self.ydata)
         return fit_residuals
+
+    def fit_molefractions(self):
+        """Return optimised molefractions table as pandas DataFrame"""
+        # Dict mapping model function names to coefficient names
+        MODEL_COEFFS_MAP = {
+            "nmr_1to1": ["H", "HG"],
+            "nmr_1to2": ["H", "HG", "HG2"],
+            "nmr_2to1": ["H", "HG", "H2G"],
+            "nmr_dimer": ["H", "Hs", "He"],
+            "nmr_coek": ["H", "Hs", "He"],
+            "uv_1to1": ["H", "HG"],
+            "uv_1to2": ["H", "HG", "HG2"],
+            "uv_2to1": ["H", "HG", "H2G"],
+            "uv_dimer": ["H", "Hs", "He"],
+            "uv_coek": ["H", "Hs", "He"],
+        }
+
+        # Build DataFrame of molefractions with x vars and column names
+        return (
+            pd.DataFrame(np.transpose(self.molefrac))
+            .set_index(self.data.index)
+            .set_axis(MODEL_COEFFS_MAP[self.function.f.__name__], axis=1)
+        )
