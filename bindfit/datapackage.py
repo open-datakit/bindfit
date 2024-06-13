@@ -18,7 +18,9 @@ from .fitter import Fitter
 MODEL_COEFFS_MAP = {
     "nmr1to1": ["H", "HG"],
     "nmr1to2": ["H", "HG", "HG2"],
+    "nmr1to3": ["H", "HG", "HG2", "HG3"],
     "nmr2to1": ["H", "HG", "H2G"],
+    "nmr3to1": ["H", "HG", "H2G", "H3G"],
     "nmrdimer": ["H", "Hs", "He"],
     "nmrcoek": ["H", "Hs", "He"],
     "uv1to1": ["H", "HG"],

@@ -544,6 +544,49 @@ def nmr_1to2(params, xdata, flavour="none", *args, **kwargs):
     return hg_mat_fit, hg_mat
 
 
+def nmr_1to3(params, xdata, *args, **kwargs):
+    
+    #Intialise Data
+    k11 = params[0]
+    k12 = params[1]
+    k13 = params[2]
+
+    h0 = xdata[0]   #htot in matlab code
+    g0 = xdata[1]   #ltot in matlab code
+
+    #Calculation of guest: Solve quartic
+    a = np.ones(h0.shape[0]) * k11 * k12 * k13
+    b = (k11 * k12) - (g0 * k11 * k12 * k13) + (3 * h0 * k11 * k12 * k13)
+    c = k11 - (ltot * k11 * k12) + (2 * htot * k11 * k12)
+    d = 1 - (g0 * k11) + (h0 * k11)
+    e = -1.0 * g0
+
+    poly = np.column_stack((a,b,c,d,e))
+
+    g = np.zeros(h0.shape[0])
+    for i, p in enumerate(poly):
+        roots = np.roots(p)
+
+        # Smallest real +ve root is [G]
+        select = np.all([np.imag(roots) == 0, np.real(roots) >= 0], axis=0)
+        if select.any():
+            soln = roots[select].min()
+            soln = float(np.real(soln))
+        else:
+            # No positive real roots, set solution to 0
+            soln = 0.0
+
+        g[i] = soln
+    
+    hg  = (g * k11) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
+    hg2 = (g * g * k11 * k12) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
+    hg3 = (g * g * g * k11 * k12 * k13) / (1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13))
+
+    #Todo: Outward function
+
+    return 0
+
+
 def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
     """Calculates predicted [HG] and [H2G] given data object and binding
     constants as input.
@@ -571,6 +614,7 @@ def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
 
     for i, p in enumerate(poly):
         roots = np.roots(p)
+
         # Smallest real +ve root is [H]
         select = np.all([np.imag(roots) == 0, np.real(roots) >= 0], axis=0)
         if select.any():
@@ -578,15 +622,13 @@ def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
             soln = float(np.real(soln))
         else:
             # No positive real roots, set solution to 0
-            soln = 0.0
+            soln = 0.0  
 
         h[i] = soln
 
     # Calculate [HG] and [H2G] complex concentrations
     hg = (g0 * h * k11) / (h0 * (1 + (h * k11) + (h * h * k11 * k12)))
-    h2g = (2 * g0 * h * h * k11 * k12) / (
-        h0 * (1 + (h * k11) + (h * h * k11 * k12))
-    )
+    h2g = (2 * g0 * h * h * k11 * k12) / (h0 * (1 + (h * k11) + (h * h * k11 * k12)))
     h = 1 - hg - h2g
 
     if flavour == "add" or flavour == "stat":
@@ -597,6 +639,49 @@ def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
 
     hg_mat = np.vstack((h, hg, h2g))
     return hg_mat_fit, hg_mat
+
+
+def nmr_3to1(params, xdata, *args, **kwargs):
+    
+    #Intialise Data
+    k11 = params[0]
+    k12 = params[1]
+    k13 = params[2]
+
+    h0 = xdata[0]   #htot in matlab code
+    g0 = xdata[1]   #ltot in matlab code
+
+    #Calculation of host: Solve quartic
+    a = np.ones(h0.shape[0]) * k11 * k12 * k13
+    b = (k11 * k12) - (g0 * k11 * k12 * k13) + (3 * h0 * k11 * k12 * k13)
+    c = k11 - (ltot * k11 * k12) + (2 * htot * k11 * k12)
+    d = 1 - (g0 * k11) + (h0 * k11)
+    e = -1.0 * g0
+
+    poly = np.column_stack((a,b,c,d,e))
+
+    g = np.zeros(h0.shape[0])
+    for i, p in enumerate(poly):
+        roots = np.roots(p)
+
+        # Smallest real +ve root is [G]
+        select = np.all([np.imag(roots) == 0, np.real(roots) >= 0], axis=0)
+        if select.any():
+            soln = roots[select].min()
+            soln = float(np.real(soln))
+        else:
+            # No positive real roots, set solution to 0
+            soln = 0.0
+
+        g[i] = soln
+    
+    hg  = (1 / h0) * (g * k11) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
+    hg2 = (1 / h0) * (g * g * k11 * k12) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
+    hg3 = (1 / h0) * (g * g * g * k11 * k12 * k13) / (1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13))
+
+    #Todo: Outward function
+
+    return 0
 
 
 def uv_2to1(params, xdata, flavour="none"):
@@ -627,6 +712,7 @@ def uv_2to1(params, xdata, flavour="none"):
 
     for i, p in enumerate(poly):
         roots = np.roots(p)
+        
         # Smallest real +ve root is [H]
         select = np.all([np.imag(roots) == 0, np.real(roots) >= 0], axis=0)
         if select.any():
@@ -640,9 +726,7 @@ def uv_2to1(params, xdata, flavour="none"):
 
     # Calculate [HG] and [H2G] complex concentrations
     hg = g0 * ((h * k11) / (1 + (h * k11) + (h * h * k11 * k12)))
-    h2g = g0 * (
-        (2 * h * h * k11 * k12) / (1 + (h * k11) + (h * h * k11 * k12))
-    )
+    h2g = g0 * ((2 * h * h * k11 * k12) / (1 + (h * k11) + (h * h * k11 * k12)))
     h = h0 - hg - h2g
 
     if flavour == "add" or flavour == "stat":
@@ -700,9 +784,7 @@ def uv_dimer(params, xdata, *args, **kwargs):
 
     # Calculate free monomer concentration [H] or alpha:
     # eq 143 from Thordarson book chapter
-    h = ((2 * ke * h0 + 1) - np.lib.scimath.sqrt(((4 * ke * h0 + 1)))) / (
-        2 * ke * ke * h0 * h0
-    )
+    h = ((2 * ke * h0 + 1) - np.lib.scimath.sqrt(((4 * ke * h0 + 1)))) / (2 * ke * ke * h0 * h0)
 
     # Calculate "in stack" concentration [Hs] or epislon: eq 149
     # (rho = 1, n.b. one "h" missing) from Thordarson book chapter
@@ -844,7 +926,9 @@ def construct(key, normalise=True, flavour="none"):
         "nmrdata": ["FunctionBinding", (key)],
         "nmr1to1": ["FunctionBinding", (key, nmr_1to1, normalise, flavour)],
         "nmr1to2": ["FunctionBinding", (key, nmr_1to2, normalise, flavour)],
+        "nmr1to3": ["FunctionBinding", (key, nmr_1to3, normalise, flavour)],
         "nmr2to1": ["FunctionBinding", (key, nmr_2to1, normalise, flavour)],
+        "nmr3to1": ["FunctionBinding", (key, nmr_3to1, normalise, flavour)],
         "uvdata": ["FunctionBinding", (key)],
         "uv1to1": ["FunctionBinding", (key, uv_1to1, normalise, flavour)],
         "uv1to2": ["FunctionBinding", (key, uv_1to2, normalise, flavour)],
