@@ -67,7 +67,7 @@ class Fitter:
 
     def __init__(
         self,
-        data,
+        *data,
         function,
         # Initial parameter guesses for the fit
         params=None,

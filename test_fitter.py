@@ -43,7 +43,7 @@ function = bindfit.functions.construct(
 )
 
 fitter = bindfit.fitter.Fitter(
-    data_x, data_y, function, normalise=normalise, params=params
+    data_x, data_y, function=function, normalise=normalise, params=params
 )
 
 fitter.run_scipy(params, method=method)
