@@ -124,7 +124,7 @@ def dilute(h0, data):
     return y_dil
 
 
-def findRoots(h0, *coeffs: np.ndarray) -> np.ndarray:
+def findRoots(h0: np.ndarray, *coeffs: np.ndarray) -> np.ndarray:
     """findRoots takes free guest concentration as inputs and solves the subsequent polynomial equation to find real roots.
     Parameters
     ----------
