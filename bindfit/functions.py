@@ -3,6 +3,7 @@
 
 import numpy as np
 
+from helpers import findRoots
 
 class BaseFunction:
     """Base Function abstract class.
@@ -456,24 +457,8 @@ def uv_1to2(params, xdata, flavour="none", *args, **kwargs):
     c = 1 + k11 * h0 - k11 * g0
     d = -1.0 * g0
 
-    # Rows: data points, cols: poly coefficients
-    poly = np.column_stack((a, b, c, d))
-
     # Solve cubic in [G] for each observation
-    g = np.zeros(h0.shape[0])
-    for i, p in enumerate(poly):
-        roots = np.roots(p)
-
-        # Smallest real +ve root is [G]
-        select = np.all([np.imag(roots) == 0, np.real(roots) >= 0], axis=0)
-        if select.any():
-            soln = roots[select].min()
-            soln = float(np.real(soln))
-        else:
-            # No positive real roots, set solution to 0
-            soln = 0.0
-
-        g[i] = soln
+    g = findRoots(h0, (a, b, c, d))
 
     # Calculate [HG] and [HG2] complex concentrations
     hg = h0 * ((g * k11) / (1 + (g * k11) + (g * g * k11 * k12)))
@@ -510,24 +495,8 @@ def nmr_1to2(params, xdata, flavour="none", *args, **kwargs):
     c = 1 + k11 * h0 - k11 * g0
     d = -1.0 * g0
 
-    # Rows: data points, cols: poly coefficients
-    poly = np.column_stack((a, b, c, d))
-
     # Solve cubic in [G] for each observation
-    g = np.zeros(h0.shape[0])
-    for i, p in enumerate(poly):
-        roots = np.roots(p)
-
-        # Smallest real +ve root is [G]
-        select = np.all([np.imag(roots) == 0, np.real(roots) >= 0], axis=0)
-        if select.any():
-            soln = roots[select].min()
-            soln = float(np.real(soln))
-        else:
-            # No positive real roots, set solution to 0
-            soln = 0.0
-
-        g[i] = soln
+    g = findRoots(h0, (a, b, c, d))
 
     # Calculate [HG] and [HG2] complex concentrations
     hg = (g * k11) / (1 + (g * k11) + (g * g * k11 * k12))
@@ -563,30 +532,12 @@ def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
     c = 1 + k11 * g0 - k11 * h0
     d = -1.0 * h0
 
-    # Rows: data points, cols: poly coefficients
-    poly = np.column_stack((a, b, c, d))
-
     # Solve cubic in [H] for each observation
-    h = np.zeros(h0.shape[0])
-
-    for i, p in enumerate(poly):
-        roots = np.roots(p)
-        # Smallest real +ve root is [H]
-        select = np.all([np.imag(roots) == 0, np.real(roots) >= 0], axis=0)
-        if select.any():
-            soln = roots[select].min()
-            soln = float(np.real(soln))
-        else:
-            # No positive real roots, set solution to 0
-            soln = 0.0
-
-        h[i] = soln
+    h = findRoots(h0, (a, b, c, d))
 
     # Calculate [HG] and [H2G] complex concentrations
     hg = (g0 * h * k11) / (h0 * (1 + (h * k11) + (h * h * k11 * k12)))
-    h2g = (2 * g0 * h * h * k11 * k12) / (
-        h0 * (1 + (h * k11) + (h * h * k11 * k12))
-    )
+    h2g = (2 * g0 * h * h * k11 * k12) / (h0 * (1 + (h * k11) + (h * h * k11 * k12)))
     h = 1 - hg - h2g
 
     if flavour == "add" or flavour == "stat":
@@ -619,30 +570,12 @@ def uv_2to1(params, xdata, flavour="none"):
     c = 1 + k11 * g0 - k11 * h0
     d = -1.0 * h0
 
-    # Rows: data points, cols: poly coefficients
-    poly = np.column_stack((a, b, c, d))
-
     # Solve cubic in [H] for each observation
-    h = np.zeros(h0.shape[0])
-
-    for i, p in enumerate(poly):
-        roots = np.roots(p)
-        # Smallest real +ve root is [H]
-        select = np.all([np.imag(roots) == 0, np.real(roots) >= 0], axis=0)
-        if select.any():
-            soln = roots[select].min()
-            soln = float(np.real(soln))
-        else:
-            # No positive real roots, set solution to 0
-            soln = 0.0
-
-        h[i] = soln
+    h = findRoots(h0, (a, b, c, d))
 
     # Calculate [HG] and [H2G] complex concentrations
     hg = g0 * ((h * k11) / (1 + (h * k11) + (h * h * k11 * k12)))
-    h2g = g0 * (
-        (2 * h * h * k11 * k12) / (1 + (h * k11) + (h * h * k11 * k12))
-    )
+    h2g = g0 * ((2 * h * h * k11 * k12) / (1 + (h * k11) + (h * h * k11 * k12)))
     h = h0 - hg - h2g
 
     if flavour == "add" or flavour == "stat":
@@ -737,24 +670,8 @@ def nmr_coek(params, xdata, *args, **kwargs):
     c = 2 * ke * h0 + 1
     d = -1.0 * np.ones(h0.shape[0])
 
-    # Rows: data points, cols: poly coefficients
-    poly = np.column_stack((a, b, c, d))
-
     # Solve cubic in [H] for each observation
-    h = np.zeros(h0.shape[0])
-    for i, p in enumerate(poly):
-        roots = np.roots(p)
-
-        # Smallest real +ve root is [H]
-        select = np.all([np.imag(roots) == 0, np.real(roots) >= 0], axis=0)
-        if select.any():
-            soln = roots[select].min()
-            soln = float(np.real(soln))
-        else:
-            # No positive real roots, set solution to 0
-            soln = 0.0
-
-        h[i] = soln
+    h = findRoots(h0, (a, b, c, d))
 
     # Calculate "in stack" concentration [Hs] or epislon:
     # eq 149 from Thordarson book chapter
@@ -786,24 +703,8 @@ def uv_coek(params, xdata, *args, **kwargs):
     c = 2 * ke * h0 + 1
     d = -1.0 * np.ones(h0.shape[0])
 
-    # Rows: data points, cols: poly coefficients
-    poly = np.column_stack((a, b, c, d))
-
     # Solve cubic in [H] for each observation
-    h = np.zeros(h0.shape[0])
-    for i, p in enumerate(poly):
-        roots = np.roots(p)
-
-        # Smallest real +ve root is [H]
-        select = np.all([np.imag(roots) == 0, np.real(roots) >= 0], axis=0)
-        if select.any():
-            soln = roots[select].min()
-            soln = float(np.real(soln))
-        else:
-            # No positive real roots, set solution to 0
-            soln = 0.0
-
-        h[i] = soln
+    h = findRoots(h0, (a, b, c, d))
 
     # n.b. these fractions are multiplied by h0
 

@@ -122,3 +122,44 @@ def dilute(h0, data):
     dilmat = ml.repmat(dilfac, y.shape[0], 1)
     y_dil = y * dilmat
     return y_dil
+
+
+def findRoots(h0, *coeffs: np.ndarray) -> np.ndarray:
+    """findRoots takes free guest concentration as inputs and solves the subsequent polynomial equation to find real roots.
+    Parameters
+    ----------
+    h0 : ndarray
+        1D array of M observations of Host concentrations
+    *coeffs : np.ndarray
+        length A tuple of numpy 1D array of M inputs
+    
+    Returns
+    -------
+    g : ndarray
+        1 x M array of roots
+    """ 
+    
+    #Check inputs
+    if len(coeffs) < 1:
+        raise ValueError("At least one input required")
+
+    # Rows: data points, cols: poly coefficients
+    poly = np.column_stack(coeffs)
+    g = np.zeros(h0.shape[0])
+
+    for i, p in enumerate(poly):
+        # Smallest real +ve root is [G]
+        roots = np.roots(p)
+        select = np.all([np.imag(roots) == 0, np.real(roots) >= 0], axis=0)
+
+        if select.any():
+            soln = roots[select].min()
+            soln = float(np.real(soln))
+        else:
+            # No positive real roots, set solution to 0
+            soln = 0.0
+
+        g[i] = soln
+
+    return g
+
