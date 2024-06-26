@@ -65,6 +65,20 @@ class Fitter:
         Fit molefractions
     """
 
+    # Dict mapping model function names to coefficient names
+    MODEL_COEFFS_MAP = {
+        "nmr_1to1": ["H", "HG"],
+        "nmr_1to2": ["H", "HG", "HG2"],
+        "nmr_2to1": ["H", "HG", "H2G"],
+        "nmr_dimer": ["H", "Hs", "He"],
+        "nmr_coek": ["H", "Hs", "He"],
+        "uv_1to1": ["H", "HG"],
+        "uv_1to2": ["H", "HG", "HG2"],
+        "uv_2to1": ["H", "HG", "H2G"],
+        "uv_dimer": ["H", "Hs", "He"],
+        "uv_coek": ["H", "Hs", "He"],
+    }
+
     def __init__(
         self,
         data,
@@ -402,23 +416,18 @@ class Fitter:
 
     def fit_molefractions(self):
         """Return optimised molefractions table as pandas DataFrame"""
-        # Dict mapping model function names to coefficient names
-        MODEL_COEFFS_MAP = {
-            "nmr_1to1": ["H", "HG"],
-            "nmr_1to2": ["H", "HG", "HG2"],
-            "nmr_2to1": ["H", "HG", "H2G"],
-            "nmr_dimer": ["H", "Hs", "He"],
-            "nmr_coek": ["H", "Hs", "He"],
-            "uv_1to1": ["H", "HG"],
-            "uv_1to2": ["H", "HG", "HG2"],
-            "uv_2to1": ["H", "HG", "H2G"],
-            "uv_dimer": ["H", "Hs", "He"],
-            "uv_coek": ["H", "Hs", "He"],
-        }
-
         # Build DataFrame of molefractions with x vars and column names
         return (
             pd.DataFrame(np.transpose(self.molefrac))
             .set_index(self.data.index)
-            .set_axis(MODEL_COEFFS_MAP[self.function.f.__name__], axis=1)
+            .set_axis(self.MODEL_COEFFS_MAP[self.function.f.__name__], axis=1)
+        )
+
+    @property
+    def fit_coefficients(self):
+        """Return optimised coefficients table as pandas DataFrame"""
+        return pd.DataFrame(
+            np.transpose(self.coeffs).set_axis(
+                self.MODEL_COEFFS_MAP[self.function.f.__name__], axis=1
+            )
         )
