@@ -402,18 +402,21 @@ class Fitter:
 
         return self.params
 
+    @property
     def fit_curve(self):
         """Return fit curve data as pandas DataFrame"""
         fit_curve = self.data.copy(deep=True)
         fit_curve[:] = np.transpose(self.fit)
         return fit_curve
 
+    @property
     def fit_residuals(self):
         """Return fit residuals data as pandas DataFrame"""
         fit_residuals = self.data.copy(deep=True)
         fit_residuals[:] = np.transpose(self.fit - self.ydata)
         return fit_residuals
 
+    @property
     def fit_molefractions(self):
         """Return optimised molefractions table as pandas DataFrame"""
         # Build DataFrame of molefractions with x vars and column names
