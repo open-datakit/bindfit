@@ -426,6 +426,8 @@ class Fitter:
     @property
     def fit_coefficients(self):
         """Return optimised coefficients table as pandas DataFrame"""
-        return pd.DataFrame(np.transpose(self.coeffs)).set_axis(
-            self.MODEL_COEFFS_MAP[self.function.f.__name__], axis=1
+        return (
+            pd.DataFrame(np.transpose(self.coeffs))
+            .set_index(self.data.columns.rename("name"))
+            .set_axis(self.MODEL_COEFFS_MAP[self.function.f.__name__], axis=1)
         )
