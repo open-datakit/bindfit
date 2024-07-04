@@ -440,9 +440,10 @@ class Fitter:
         return pd.DataFrame(
             [
                 ["model", self.function.f.__name__],
-                ["time", self.time]["ssr", helpers.ssr(self.residuals)][
-                    "n_y", np.array(self.fit).size
-                ][
+                ["time", self.time],
+                ["ssr", helpers.ssr(self.residuals)],
+                ["n_y", np.array(self.fit).size],
+                [
                     "n_params",
                     len(self.params) + np.array(self.coeffs_raw).size,
                 ],
