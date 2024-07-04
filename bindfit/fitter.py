@@ -434,3 +434,17 @@ class Fitter:
             .set_index(self.data.columns.rename("name"))
             .set_axis(self.MODEL_COEFFS_MAP[self.function.f.__name__], axis=1)
         )
+
+    @property
+    def fit_summary(self):
+        return pd.DataFrame(
+            [
+                ["model", self.function.f.__name__],
+                ["time", self.time]["ssr", helpers.ssr(self.residuals)][
+                    "n_y", np.array(self.fit).size
+                ][
+                    "n_params",
+                    len(self.params) + np.array(self.coeffs_raw).size,
+                ],
+            ]
+        )
