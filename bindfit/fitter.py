@@ -463,10 +463,12 @@ class Fitter:
     def fit_quality(self):
         """Return fit quality statistics as pandas DataFrame"""
         print(
-            [
-                np.transpose(helpers.rms(self.residuals)),
-                np.transpose(helpers.cov(self.ydata, self.residuals)),
-            ]
+            np.transpose(
+                [
+                    helpers.rms(self.residuals),
+                    helpers.cov(self.ydata, self.residuals),
+                ]
+            )
         )
         return (
             pd.DataFrame(
