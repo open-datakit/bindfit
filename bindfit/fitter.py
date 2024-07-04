@@ -459,6 +459,7 @@ class Fitter:
             ],
         ).set_index("Model")
 
+    @property
     def fit_quality(self):
         """Return fit quality statistics as pandas DataFrame"""
         return (
