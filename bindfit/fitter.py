@@ -447,5 +447,11 @@ class Fitter:
                     len(self.params) + np.array(self.coeffs_raw).size,
                 ]
             ],
-            columns=["model", "time", "ssr", "n_y", "n_params"],
-        ).set_index("model")
+            columns=[
+                "Model",
+                "Time",
+                "SSR",
+                "Fitted datapoints",
+                "Fitted parameters",
+            ],
+        ).set_index("Model")
