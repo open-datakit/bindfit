@@ -89,8 +89,10 @@ class Fitter:
         #     Host/Guest data matrix, one variable per row
         # ydata : array_like, MxN matrix
         #     Observed data matrix, one variable per row
-        self.xdata = np.transpose(np.asarray(list(data.index.to_numpy())))
-        self.ydata = np.transpose(data.to_numpy())
+        self.xdata = np.asarray(list(data[0]))
+        self.ydata = data[1]
+        print(self.xdata.shape)
+        print(self.ydata.shape)
 
         self.function = function
 
