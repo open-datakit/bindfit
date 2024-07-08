@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from helpers import findRoots
+from . import helpers
 
 class BaseFunction:
     """Base Function abstract class.
@@ -458,7 +458,7 @@ def uv_1to2(params, xdata, flavour="none", *args, **kwargs):
     d = -1.0 * g0
 
     # Solve cubic in [G] for each observation
-    g = findRoots(h0, (a, b, c, d))
+    g = helpers.findRoots(h0, (a, b, c, d))
 
     # Calculate [HG] and [HG2] complex concentrations
     hg = h0 * ((g * k11) / (1 + (g * k11) + (g * g * k11 * k12)))
@@ -496,7 +496,7 @@ def nmr_1to2(params, xdata, flavour="none", *args, **kwargs):
     d = -1.0 * g0
 
     # Solve cubic in [G] for each observation
-    g = findRoots(h0, (a, b, c, d))
+    g = helpers.findRoots(h0, (a, b, c, d))
 
     # Calculate [HG] and [HG2] complex concentrations
     hg = (g * k11) / (1 + (g * k11) + (g * g * k11 * k12))
@@ -533,7 +533,7 @@ def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
     d = -1.0 * h0
 
     # Solve cubic in [H] for each observation
-    h = findRoots(h0, (a, b, c, d))
+    h = helpers.findRoots(h0, (a, b, c, d))
 
     # Calculate [HG] and [H2G] complex concentrations
     hg = (g0 * h * k11) / (h0 * (1 + (h * k11) + (h * h * k11 * k12)))
@@ -571,7 +571,7 @@ def uv_2to1(params, xdata, flavour="none"):
     d = -1.0 * h0
 
     # Solve cubic in [H] for each observation
-    h = findRoots(h0, (a, b, c, d))
+    h = helpers.findRoots(h0, (a, b, c, d))
 
     # Calculate [HG] and [H2G] complex concentrations
     hg = g0 * ((h * k11) / (1 + (h * k11) + (h * h * k11 * k12)))
@@ -671,7 +671,7 @@ def nmr_coek(params, xdata, *args, **kwargs):
     d = -1.0 * np.ones(h0.shape[0])
 
     # Solve cubic in [H] for each observation
-    h = findRoots(h0, (a, b, c, d))
+    h = helpers.findRoots(h0, (a, b, c, d))
 
     # Calculate "in stack" concentration [Hs] or epislon:
     # eq 149 from Thordarson book chapter
@@ -704,7 +704,7 @@ def uv_coek(params, xdata, *args, **kwargs):
     d = -1.0 * np.ones(h0.shape[0])
 
     # Solve cubic in [H] for each observation
-    h = findRoots(h0, (a, b, c, d))
+    h = helpers.findRoots(h0, (a, b, c, d))
 
     # n.b. these fractions are multiplied by h0
 
