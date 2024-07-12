@@ -544,20 +544,27 @@ def nmr_1to2(params, xdata, flavour="none", *args, **kwargs):
     return hg_mat_fit, hg_mat
 
 
-def nmr_1to3(params, xdata, *args, **kwargs):
+def nmr_1to3(params, xdata, flavour="none", *args, **kwargs):
+    """Calculates predicted [HG], [H2G], and [H3G] given data object and binding
+    constants as input.
+    """
     
     #Intialise Data
     k11 = params[0]
-    k12 = params[1]
-    k13 = params[2]
+    if flavour == "noncoop":
+        k12 = k11 / 3
+        k13 = k11 / 9
+    else:
+        k12 = params[1]
+        k13 = params[2]
 
-    h0 = xdata[0]   #htot in matlab code
-    g0 = xdata[1]   #ltot in matlab code
+    h0 = xdata[0]   #h0 in matlab code
+    g0 = xdata[1]   #g0 in matlab code
 
     #Calculation of guest: Solve quartic
     a = np.ones(h0.shape[0]) * k11 * k12 * k13
     b = (k11 * k12) - (g0 * k11 * k12 * k13) + (3 * h0 * k11 * k12 * k13)
-    c = k11 - (ltot * k11 * k12) + (2 * htot * k11 * k12)
+    c = k11 - (g0 * k11 * k12) + (2 * h0 * k11 * k12)
     d = 1 - (g0 * k11) + (h0 * k11)
     e = -1.0 * g0
 
@@ -641,20 +648,27 @@ def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
     return hg_mat_fit, hg_mat
 
 
-def nmr_3to1(params, xdata, *args, **kwargs):
-    
+def nmr_3to1(params, xdata, flavour="none", *args, **kwargs):
+    """Calculates predicted [HG], [HG2], and [HG3] given data object and binding
+    constants as input.
+    """
+
     #Intialise Data
     k11 = params[0]
-    k12 = params[1]
-    k13 = params[2]
+    if flavour == "noncoop":
+        k12 = k11 / 3
+        k13 = k11 / 9
+    else:
+        k12 = params[1]
+        k13 = params[2]
 
-    h0 = xdata[0]   #htot in matlab code
-    g0 = xdata[1]   #ltot in matlab code
+    h0 = xdata[0]   #h0 in matlab code
+    g0 = xdata[1]   #g0 in matlab code
 
     #Calculation of host: Solve quartic
     a = np.ones(h0.shape[0]) * k11 * k12 * k13
     b = (k11 * k12) - (g0 * k11 * k12 * k13) + (3 * h0 * k11 * k12 * k13)
-    c = k11 - (ltot * k11 * k12) + (2 * htot * k11 * k12)
+    c = k11 - (g0 * k11 * k12) + (2 * h0 * k11 * k12)
     d = 1 - (g0 * k11) + (h0 * k11)
     e = -1.0 * g0
 
@@ -680,6 +694,7 @@ def nmr_3to1(params, xdata, *args, **kwargs):
     hg3 = (1 / h0) * (g * g * g * k11 * k12 * k13) / (1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13))
 
     #Todo: Outward function
+    
 
     return 0
 
