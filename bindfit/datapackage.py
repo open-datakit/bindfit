@@ -26,6 +26,8 @@ MODEL_COEFFS_MAP = {
     "uv1to1": ["H", "HG"],
     "uv1to2": ["H", "HG", "HG2"],
     "uv2to1": ["H", "HG", "H2G"],
+    "uv3to1": ["H", "HG", "H2G", "H3G"],
+    "uv1to3": ["H", "HG", "HG2", "HG3"],
     "uvdimer": ["H", "Hs", "He"],
     "uvcoek": ["H", "Hs", "He"],
 }
