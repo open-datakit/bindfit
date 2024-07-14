@@ -545,10 +545,10 @@ def nmr_1to2(params, xdata, flavour="none", *args, **kwargs):
 
 
 def nmr_1to3(params, xdata, flavour="none", *args, **kwargs):
-    """Calculates predicted [HG], [H2G], and [H3G] given data object and binding
+    """Calculates predicted [HG], [HG2], and [HG3] given data object and binding
     constants as input.
     """
-    
+
     #Intialise Data
     k11 = params[0]
     if flavour == "noncoop":
@@ -588,11 +588,14 @@ def nmr_1to3(params, xdata, flavour="none", *args, **kwargs):
     hg  = (g * k11) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
     hg2 = (g * g * k11 * k12) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
     hg3 = (g * g * g * k11 * k12 * k13) / (1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13))
+    
+    #h0 in UV
+    h = 1 - hg - hg2 - hg3
 
-    #Todo: Outward function
+    hg_mat_fit = np.vstack((h, hg, hg2, hg3))
+    hg_mat = np.vstack((h, hg, hg2, hg3))
 
-    return 0
-
+    return hg_mat_fit, hg_mat
 
 def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
     """Calculates predicted [HG] and [H2G] given data object and binding
@@ -649,7 +652,7 @@ def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
 
 
 def nmr_3to1(params, xdata, flavour="none", *args, **kwargs):
-    """Calculates predicted [HG], [HG2], and [HG3] given data object and binding
+    """Calculates predicted [HG], [H2G], and [H3G] given data object and binding
     constants as input.
     """
 
@@ -690,13 +693,16 @@ def nmr_3to1(params, xdata, flavour="none", *args, **kwargs):
         g[i] = soln
     
     hg  = (1 / h0) * (g * k11) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
-    hg2 = (1 / h0) * (g * g * k11 * k12) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
-    hg3 = (1 / h0) * (g * g * g * k11 * k12 * k13) / (1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13))
+    h2g = (1 / h0) * (g * g * k11 * k12) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
+    h3g = (1 / h0) * (g * g * g * k11 * k12 * k13) / (1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13))
 
-    #Todo: Outward function
-    
+    #We don't use h0 because NMR is chemical shift, UV is absorbance
+    h = 1 - hg - h2g - h3g
 
-    return 0
+    hg_mat_fit = np.vstack((h, hg, h2g, h3g))
+    hg_mat = np.vstack((h, hg, h2g, h3g))
+
+    return hg_mat_fit, hg_mat
 
 
 def uv_2to1(params, xdata, flavour="none"):
