@@ -314,3 +314,4 @@ def fit(datapackage):
         "qof": datapackage_output_qof,
         "coeffs": datapackage_output_coeffs,
     }
+
