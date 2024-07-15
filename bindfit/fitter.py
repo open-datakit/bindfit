@@ -65,6 +65,20 @@ class Fitter:
         Fit molefractions
     """
 
+    # Dict mapping model function names to coefficient names
+    MODEL_COEFFS_MAP = {
+        "nmr_1to1": ["H", "HG"],
+        "nmr_1to2": ["H", "HG", "HG2"],
+        "nmr_2to1": ["H", "HG", "H2G"],
+        "nmr_dimer": ["H", "Hs", "He"],
+        "nmr_coek": ["H", "Hs", "He"],
+        "uv_1to1": ["H", "HG"],
+        "uv_1to2": ["H", "HG", "HG2"],
+        "uv_2to1": ["H", "HG", "H2G"],
+        "uv_dimer": ["H", "Hs", "He"],
+        "uv_coek": ["H", "Hs", "He"],
+    }
+
     def __init__(
         self,
         *data,
@@ -91,8 +105,6 @@ class Fitter:
         #     Observed data matrix, one variable per row
         self.xdata = np.asarray(list(data[0]))
         self.ydata = data[1]
-        print(self.xdata.shape)
-        print(self.ydata.shape)
 
         self.function = function
 
@@ -390,37 +402,78 @@ class Fitter:
 
         return self.params
 
+    @property
     def fit_curve(self):
         """Return fit curve data as pandas DataFrame"""
         fit_curve = self.data.copy(deep=True)
         fit_curve[:] = np.transpose(self.fit)
         return fit_curve
 
+    @property
     def fit_residuals(self):
         """Return fit residuals data as pandas DataFrame"""
         fit_residuals = self.data.copy(deep=True)
         fit_residuals[:] = np.transpose(self.fit - self.ydata)
         return fit_residuals
 
+    @property
     def fit_molefractions(self):
         """Return optimised molefractions table as pandas DataFrame"""
-        # Dict mapping model function names to coefficient names
-        MODEL_COEFFS_MAP = {
-            "nmr_1to1": ["H", "HG"],
-            "nmr_1to2": ["H", "HG", "HG2"],
-            "nmr_2to1": ["H", "HG", "H2G"],
-            "nmr_dimer": ["H", "Hs", "He"],
-            "nmr_coek": ["H", "Hs", "He"],
-            "uv_1to1": ["H", "HG"],
-            "uv_1to2": ["H", "HG", "HG2"],
-            "uv_2to1": ["H", "HG", "H2G"],
-            "uv_dimer": ["H", "Hs", "He"],
-            "uv_coek": ["H", "Hs", "He"],
-        }
-
         # Build DataFrame of molefractions with x vars and column names
         return (
             pd.DataFrame(np.transpose(self.molefrac))
             .set_index(self.data.index)
-            .set_axis(MODEL_COEFFS_MAP[self.function.f.__name__], axis=1)
+            .set_axis(self.MODEL_COEFFS_MAP[self.function.f.__name__], axis=1)
+        )
+
+    @property
+    def fit_coefficients(self):
+        """Return optimised coefficients table as pandas DataFrame"""
+        return (
+            pd.DataFrame(np.transpose(self.coeffs))
+            # Set index to fit column names
+            .set_index(self.data.columns.rename("name"))
+            # Set coefficient column names
+            .set_axis(self.MODEL_COEFFS_MAP[self.function.f.__name__], axis=1)
+        )
+
+    @property
+    def fit_summary(self):
+        """Return fit summary data as pandas DataFrame"""
+        return pd.DataFrame(
+            [
+                [
+                    self.function.f.__name__,
+                    self.time,
+                    helpers.ssr(self.residuals),
+                    np.array(self.fit).size,
+                    len(self.params) + np.array(self.coeffs_raw).size,
+                ]
+            ],
+            columns=[
+                "Model",
+                "Time",
+                "SSR",
+                "Fitted datapoints",
+                "Fitted parameters",
+            ],
+        ).set_index("Model")
+
+    @property
+    def fit_quality(self):
+        """Return fit quality statistics as pandas DataFrame"""
+        return (
+            pd.DataFrame(
+                np.transpose(
+                    [
+                        helpers.rms(self.residuals),
+                        helpers.cov(self.ydata, self.residuals),
+                    ]
+                ),
+                columns=["RMS", "Covariance"],
+            )
+            # Set index to fit column names
+            # Doing it this way instead of setting index in constructor as
+            # this allows us to use a custom named index
+            .set_index(self.data.columns.rename("Fit"))
         )
