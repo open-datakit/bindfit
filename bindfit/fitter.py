@@ -477,3 +477,55 @@ class Fitter:
             # this allows us to use a custom named index
             .set_index(self.data.columns.rename("Fit"))
         )
+
+    @property
+    def fit_coefficients(self):
+        """Return optimised coefficients table as pandas DataFrame"""
+        return (
+            pd.DataFrame(np.transpose(self.coeffs))
+            # Set index to fit column names
+            .set_index(self.data.columns.rename("name"))
+            # Set coefficient column names
+            .set_axis(self.MODEL_COEFFS_MAP[self.function.f.__name__], axis=1)
+        )
+
+    @property
+    def fit_summary(self):
+        """Return fit summary data as pandas DataFrame"""
+        return pd.DataFrame(
+            [
+                [
+                    self.function.f.__name__,
+                    self.time,
+                    helpers.ssr(self.residuals),
+                    np.array(self.fit).size,
+                    len(self.params) + np.array(self.coeffs_raw).size,
+                ]
+            ],
+            columns=[
+                "Model",
+                "Time",
+                "SSR",
+                "Fitted datapoints",
+                "Fitted parameters",
+            ],
+        ).set_index("Model")
+
+    @property
+    def fit_quality(self):
+        """Return fit quality statistics as pandas DataFrame"""
+        return (
+            pd.DataFrame(
+                np.transpose(
+                    [
+                        helpers.rms(self.residuals),
+                        helpers.cov(self.ydata, self.residuals),
+                    ]
+                ),
+                columns=["RMS", "Covariance"],
+            )
+            # Set index to fit column names
+            # Doing it this way instead of setting index in constructor as
+            # this allows us to use a custom named index
+            .set_index(self.data.columns.rename("Fit"))
+        )
