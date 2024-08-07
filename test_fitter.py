@@ -30,7 +30,7 @@ data = pd.read_csv("input.csv")
 data = data.set_index(["Host", "Guest"])
 
 # Dilution correction is already in fitter
-#if dilute:
+# if dilute:
 #    data_y = bindfit.helpers.dilute(data_x[0], data_y)
 
 function = bindfit.functions.construct(
@@ -63,7 +63,9 @@ summary = {
         "rms": bindfit.helpers.rms(fitter.residuals),
         "cov": bindfit.helpers.cov(fitter.ydata, fitter.residuals),
         "rms_total": bindfit.helpers.rms(fitter.residuals, total=True),
-        "cov_total": bindfit.helpers.cov(fitter.ydata, fitter.residuals, total=True),
+        "cov_total": bindfit.helpers.cov(
+            fitter.ydata, fitter.residuals, total=True
+        ),
     },
     "time": fitter.time,
     "options": {
