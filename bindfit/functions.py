@@ -631,7 +631,6 @@ def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
 
     for i, p in enumerate(poly):
         roots = np.roots(p)
-
         # Smallest real +ve root is [H]
         select = np.all([np.imag(roots) == 0, np.real(roots) >= 0], axis=0)
         if select.any():
