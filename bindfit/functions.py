@@ -380,7 +380,8 @@ def inhibitor_response(params, xdata, *args, **kwargs):
 
 
 def nmr_1to1(params, xdata, *args, **kwargs):
-    """Calculates predicted [HG] given data object parameters as input for NMR data."""
+    """Calculates predicted [HG] given data object parameters
+    as input for NMR data."""
     k = params[0]
 
     h0 = xdata[0]
@@ -545,11 +546,11 @@ def nmr_1to2(params, xdata, flavour="none", *args, **kwargs):
 
 
 def nmr_1to3(params, xdata, flavour="none", *args, **kwargs):
-    """Calculates predicted [HG], [HG2], and [HG3] given data object and binding
-    constants as input for NMR data.
+    """Calculates predicted [HG], [HG2], and [HG3] given data object and
+    binding constants as input for NMR data.
     """
 
-    #Intialise Data
+    # Intialise Data
     k11 = params[0]
     if flavour == "noncoop":
         k12 = k11 / 3
@@ -558,17 +559,17 @@ def nmr_1to3(params, xdata, flavour="none", *args, **kwargs):
         k12 = params[1]
         k13 = params[2]
 
-    h0 = xdata[0]   #h0 in matlab code
-    g0 = xdata[1]   #g0 in matlab code
+    h0 = xdata[0]  # h0 in matlab code
+    g0 = xdata[1]  # g0 in matlab code
 
-    #Calculation of guest: Solve quartic
+    # Calculation of guest: Solve quartic
     a = np.ones(h0.shape[0]) * k11 * k12 * k13
     b = (k11 * k12) - (g0 * k11 * k12 * k13) + (3 * h0 * k11 * k12 * k13)
     c = k11 - (g0 * k11 * k12) + (2 * h0 * k11 * k12)
     d = 1 - (g0 * k11) + (h0 * k11)
     e = -1.0 * g0
 
-    poly = np.column_stack((a,b,c,d,e))
+    poly = np.column_stack((a, b, c, d, e))
 
     g = np.zeros(h0.shape[0])
     for i, p in enumerate(poly):
@@ -584,12 +585,18 @@ def nmr_1to3(params, xdata, flavour="none", *args, **kwargs):
             soln = 0.0
 
         g[i] = soln
-    
-    hg  = (g * k11) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
-    hg2 = (g * g * k11 * k12) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
-    hg3 = (g * g * g * k11 * k12 * k13) / (1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13))
-    
-    #h0 in UV
+
+    hg = (g * k11) / (
+        1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13)
+    )
+    hg2 = (g * g * k11 * k12) / (
+        1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13)
+    )
+    hg3 = (g * g * g * k11 * k12 * k13) / (
+        1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13)
+    )
+
+    # h0 in UV
     h = 1 - hg - hg2 - hg3
 
     hg_mat_fit = np.vstack((h, hg, hg2, hg3))
@@ -599,11 +606,11 @@ def nmr_1to3(params, xdata, flavour="none", *args, **kwargs):
 
 
 def uv_1to3(params, xdata, flavour="none", *args, **kwargs):
-    """Calculates predicted [HG], [HG2], and [HG3] given data object and binding
-    constants as input for NMR data.
+    """Calculates predicted [HG], [HG2], and [HG3] given data object and
+    binding constants as input for NMR data.
     """
 
-    #Intialise Data
+    # Intialise Data
     k11 = params[0]
     if flavour == "noncoop":
         k12 = k11 / 3
@@ -612,17 +619,17 @@ def uv_1to3(params, xdata, flavour="none", *args, **kwargs):
         k12 = params[1]
         k13 = params[2]
 
-    h0 = xdata[0]   #h0 in matlab code
-    g0 = xdata[1]   #g0 in matlab code
+    h0 = xdata[0]  # h0 in matlab code
+    g0 = xdata[1]  # g0 in matlab code
 
-    #Calculation of guest: Solve quartic
+    # Calculation of guest: Solve quartic
     a = np.ones(h0.shape[0]) * k11 * k12 * k13
     b = (k11 * k12) - (g0 * k11 * k12 * k13) + (3 * h0 * k11 * k12 * k13)
     c = k11 - (g0 * k11 * k12) + (2 * h0 * k11 * k12)
     d = 1 - (g0 * k11) + (h0 * k11)
     e = -1.0 * g0
 
-    poly = np.column_stack((a,b,c,d,e))
+    poly = np.column_stack((a, b, c, d, e))
 
     g = np.zeros(h0.shape[0])
     for i, p in enumerate(poly):
@@ -638,11 +645,17 @@ def uv_1to3(params, xdata, flavour="none", *args, **kwargs):
             soln = 0.0
 
         g[i] = soln
-    
-    hg  = (g * k11) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
-    hg2 = (g * g * k11 * k12) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
-    hg3 = (g * g * g * k11 * k12 * k13) / (1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13))
-    
+
+    hg = (g * k11) / (
+        1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13)
+    )
+    hg2 = (g * g * k11 * k12) / (
+        1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13)
+    )
+    hg3 = (g * g * g * k11 * k12 * k13) / (
+        1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13)
+    )
+
     h = h0 - hg - hg2 - hg3
 
     hg_mat_fit = np.vstack((h, hg, hg2, hg3))
@@ -686,13 +699,15 @@ def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
             soln = float(np.real(soln))
         else:
             # No positive real roots, set solution to 0
-            soln = 0.0  
+            soln = 0.0
 
         h[i] = soln
 
     # Calculate [HG] and [H2G] complex concentrations
     hg = (g0 * h * k11) / (h0 * (1 + (h * k11) + (h * h * k11 * k12)))
-    h2g = (2 * g0 * h * h * k11 * k12) / (h0 * (1 + (h * k11) + (h * h * k11 * k12)))
+    h2g = (2 * g0 * h * h * k11 * k12) / (
+        h0 * (1 + (h * k11) + (h * h * k11 * k12))
+    )
     h = 1 - hg - h2g
 
     if flavour == "add" or flavour == "stat":
@@ -706,11 +721,11 @@ def nmr_2to1(params, xdata, flavour="none", *args, **kwargs):
 
 
 def nmr_3to1(params, xdata, flavour="none", *args, **kwargs):
-    """Calculates predicted [HG], [H2G], and [H3G] given data object and binding
-    constants as input for NMR data.
+    """Calculates predicted [HG], [H2G], and [H3G] given data object and
+    binding constants as input for NMR data.
     """
 
-    #Intialise Data
+    # Intialise Data
     k11 = params[0]
     if flavour == "noncoop":
         k12 = k11 / 3
@@ -719,17 +734,17 @@ def nmr_3to1(params, xdata, flavour="none", *args, **kwargs):
         k12 = params[1]
         k13 = params[2]
 
-    h0 = xdata[0]   #h0 in matlab code
-    g0 = xdata[1]   #g0 in matlab code
+    h0 = xdata[0]  # h0 in matlab code
+    g0 = xdata[1]  # g0 in matlab code
 
-    #Calculation of host: Solve quartic
+    # Calculation of host: Solve quartic
     a = np.ones(h0.shape[0]) * k11 * k12 * k13
     b = (k11 * k12) - (g0 * k11 * k12 * k13) + (3 * h0 * k11 * k12 * k13)
     c = k11 - (g0 * k11 * k12) + (2 * h0 * k11 * k12)
     d = 1 - (g0 * k11) + (h0 * k11)
     e = -1.0 * g0
 
-    poly = np.column_stack((a,b,c,d,e))
+    poly = np.column_stack((a, b, c, d, e))
 
     g = np.zeros(h0.shape[0])
     for i, p in enumerate(poly):
@@ -745,12 +760,24 @@ def nmr_3to1(params, xdata, flavour="none", *args, **kwargs):
             soln = 0.0
 
         g[i] = soln
-    
-    hg  = (1 / h0) * (g * k11) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
-    h2g = (1 / h0) * (g * g * k11 * k12) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
-    h3g = (1 / h0) * (g * g * g * k11 * k12 * k13) / (1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13))
 
-    #We don't use h0 because NMR is chemical shift, UV is absorbance
+    hg = (
+        (1 / h0)
+        * (g * k11)
+        / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
+    )
+    h2g = (
+        (1 / h0)
+        * (g * g * k11 * k12)
+        / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
+    )
+    h3g = (
+        (1 / h0)
+        * (g * g * g * k11 * k12 * k13)
+        / (1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13))
+    )
+
+    # We don't use h0 because NMR is chemical shift, UV is absorbance
     h = 1 - hg - h2g - h3g
 
     hg_mat_fit = np.vstack((h, hg, h2g, h3g))
@@ -787,7 +814,7 @@ def uv_2to1(params, xdata, flavour="none"):
 
     for i, p in enumerate(poly):
         roots = np.roots(p)
-        
+
         # Smallest real +ve root is [H]
         select = np.all([np.imag(roots) == 0, np.real(roots) >= 0], axis=0)
         if select.any():
@@ -801,7 +828,9 @@ def uv_2to1(params, xdata, flavour="none"):
 
     # Calculate [HG] and [H2G] complex concentrations
     hg = g0 * ((h * k11) / (1 + (h * k11) + (h * h * k11 * k12)))
-    h2g = g0 * ((2 * h * h * k11 * k12) / (1 + (h * k11) + (h * h * k11 * k12)))
+    h2g = g0 * (
+        (2 * h * h * k11 * k12) / (1 + (h * k11) + (h * h * k11 * k12))
+    )
     h = h0 - hg - h2g
 
     if flavour == "add" or flavour == "stat":
@@ -815,11 +844,11 @@ def uv_2to1(params, xdata, flavour="none"):
 
 
 def uv_3to1(params, xdata, flavour="none", *args, **kwargs):
-    """Calculates predicted [HG], [H2G], and [H3G] given data object and binding
-    constants as input for UV data.
+    """Calculates predicted [HG], [H2G], and [H3G] given data object and
+    binding constants as input for UV data.
     """
 
-    #Intialise Data
+    # Intialise Data
     k11 = params[0]
     if flavour == "noncoop":
         k12 = k11 / 3
@@ -828,17 +857,17 @@ def uv_3to1(params, xdata, flavour="none", *args, **kwargs):
         k12 = params[1]
         k13 = params[2]
 
-    h0 = xdata[0]   #h0 in matlab code
-    g0 = xdata[1]   #g0 in matlab code
+    h0 = xdata[0]  # h0 in matlab code
+    g0 = xdata[1]  # g0 in matlab code
 
-    #Calculation of host: Solve quartic
+    # Calculation of host: Solve quartic
     a = np.ones(h0.shape[0]) * k11 * k12 * k13
     b = (k11 * k12) - (g0 * k11 * k12 * k13) + (3 * h0 * k11 * k12 * k13)
     c = k11 - (g0 * k11 * k12) + (2 * h0 * k11 * k12)
     d = 1 - (g0 * k11) + (h0 * k11)
     e = -1.0 * g0
 
-    poly = np.column_stack((a,b,c,d,e))
+    poly = np.column_stack((a, b, c, d, e))
 
     g = np.zeros(h0.shape[0])
     for i, p in enumerate(poly):
@@ -854,12 +883,24 @@ def uv_3to1(params, xdata, flavour="none", *args, **kwargs):
             soln = 0.0
 
         g[i] = soln
-    
-    hg  = (1 / h0) * (g * k11) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
-    h2g = (1 / h0) * (g * g * k11 * k12) / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
-    h3g = (1 / h0) * (g * g * g * k11 * k12 * k13) / (1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13))
 
-    #We don't use h0 because NMR is chemical shift, UV is absorbance
+    hg = (
+        (1 / h0)
+        * (g * k11)
+        / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
+    )
+    h2g = (
+        (1 / h0)
+        * (g * g * k11 * k12)
+        / (1 + (g * k11) + (g * g * k11 * k12) + (g * g * g * k11 * k12 * k13))
+    )
+    h3g = (
+        (1 / h0)
+        * (g * g * g * k11 * k12 * k13)
+        / (1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13))
+    )
+
+    # We don't use h0 because NMR is chemical shift, UV is absorbance
     h = h0 - hg - h2g - h3g
 
     hg_mat_fit = np.vstack((h, hg, h2g, h3g))
@@ -913,7 +954,9 @@ def uv_dimer(params, xdata, *args, **kwargs):
 
     # Calculate free monomer concentration [H] or alpha:
     # eq 143 from Thordarson book chapter
-    h = ((2 * ke * h0 + 1) - np.lib.scimath.sqrt(((4 * ke * h0 + 1)))) / (2 * ke * ke * h0 * h0)
+    h = ((2 * ke * h0 + 1) - np.lib.scimath.sqrt(((4 * ke * h0 + 1)))) / (
+        2 * ke * ke * h0 * h0
+    )
 
     # Calculate "in stack" concentration [Hs] or epislon: eq 149
     # (rho = 1, n.b. one "h" missing) from Thordarson book chapter
