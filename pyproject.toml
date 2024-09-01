@@ -10,12 +10,11 @@ dependencies = [
     "numpy >= 1.26.4, < 2.0",
     "scipy >= 1.13.0, < 2.0",
     "pandas >= 2.2, < 3.0",
-    "opendatafit @ git+https://github.com/opendatafit/opendatafit.git@main",
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/opendatafit/bindfit"
-"Bug Tracker" = "https://github.com/opendatafit/bindfit/issues"
+"Homepage" = "https://github.com/opendatastudio/bindfit"
+"Bug Tracker" = "https://github.com/opendatastudio/bindfit/issues"
 
 [project.optional-dependencies]
 development = [
