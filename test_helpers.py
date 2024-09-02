@@ -80,10 +80,10 @@ def assertValueInRange(self, value, target, error):
 
 
 if __name__ == "__main__":
-    input_file = "NMR1to2.csv"
-    hostname = "Host"
-    guestname = "Guest"
-    fitter_name = "nmr1to2"
+    input_file = "tests/nmr1to3/nmr1to3.csv"
+    hostname = "host"
+    guestname = "guest"
+    fitter_name = "uv1to3"
     method = "Nelder-Mead"
     normalise = True
     dilute = False
@@ -103,7 +103,14 @@ if __name__ == "__main__":
             "max": None,
         },
     },
+    "k13": {
+        "init": 100.0,
+        "bounds": {
+            "min": 0.0,
+            "max": None,
+        },
+    },
     }
 
-    summary = run_bindfit(input_file, hostname, guestname, fitter_name, method, normalise, dilute, flavour, params)
+    summary = run_bindfit(input_file, hostname, guestname, fitter_name, method, normalise, flavour, params)
     pprint.pprint(summary)
