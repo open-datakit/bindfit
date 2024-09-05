@@ -596,7 +596,7 @@ def uv_1to3(params, xdata, flavour="none", *args, **kwargs):
         1 + (g * k11) + (g * g * k11 * k12) + (b * g * g * k11 * k12 * k13)
     )
 
-    h = 1 - hg - hg2 - hg3
+    h = h0 - hg - hg2 - hg3
 
     hg_mat_fit = np.vstack((h, hg, hg2, hg3))
     hg_mat = np.vstack((h, hg, hg2, hg3))
