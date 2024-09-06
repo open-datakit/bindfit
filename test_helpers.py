@@ -145,6 +145,6 @@ if __name__ == "__main__":
         },
     },
     }
-
+    #Expected values are 968,68204,1024
     summary = run_bindfit(input_file, hostname, guestname, fitter_name, method, normalise, flavour, params)
     pprint.pprint(summary)
