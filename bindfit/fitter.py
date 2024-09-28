@@ -67,20 +67,20 @@ class Fitter:
 
     # Dict mapping model function names to coefficient names
     MODEL_COEFFS_MAP = {
-        "nmr_1to1": ["H", "HG"],
-        "nmr_1to2": ["H", "HG", "HG2"],
-        "nmr_1to3": ["H", "HG", "HG2", "HG3"],
-        "nmr_2to1": ["H", "HG", "H2G"],
-        "nmr_3to1": ["H", "HG", "H2G", "H3G"],
-        "nmr_dimer": ["H", "Hs", "He"],
-        "nmr_coek": ["H", "Hs", "He"],
-        "uv_1to1": ["H", "HG"],
-        "uv_1to2": ["H", "HG", "HG2"],
-        "uv_1to3": ["H", "HG", "HG2", "HG3"],
-        "uv_2to1": ["H", "HG", "H2G"],
-        "uv_3to1": ["H", "HG", "H2G", "H3G"],
-        "uv_dimer": ["H", "Hs", "He"],
-        "uv_coek": ["H", "Hs", "He"],
+        "nmr_1to1": ["h", "hg"],
+        "nmr_1to2": ["h", "hg", "hg2"],
+        "nmr_1to3": ["h", "hg", "hg2", "hg3"],
+        "nmr_2to1": ["h", "hg", "h2g"],
+        "nmr_3to1": ["h", "hg", "h2g", "h3g"],
+        "nmr_dimer": ["h", "hs", "he"],
+        "nmr_coek": ["h", "hs", "he"],
+        "uv_1to1": ["h", "hg"],
+        "uv_1to2": ["h", "hg", "hg2"],
+        "uv_1to3": ["h", "hg", "hg2", "hg3"],
+        "uv_2to1": ["h", "hg", "h2g"],
+        "uv_3to1": ["h", "hg", "h2g", "h3g"],
+        "uv_dimer": ["h", "hs", "he"],
+        "uv_coek": ["h", "hs", "he"],
     }
 
     def __init__(
@@ -455,13 +455,13 @@ class Fitter:
                 ]
             ],
             columns=[
-                "Model",
-                "Time",
-                "SSR",
-                "Fitted datapoints",
-                "Fitted parameters",
+                "model",
+                "time",
+                "ssr",
+                "n_y",
+                "n_params",
             ],
-        ).set_index("Model")
+        ).set_index("model")
 
     @property
     def fit_quality(self):
@@ -474,10 +474,10 @@ class Fitter:
                         helpers.cov(self.ydata, self.residuals),
                     ]
                 ),
-                columns=["RMS", "Covariance"],
+                columns=["rms", "cov"],
             )
             # Set index to fit column names
             # Doing it this way instead of setting index in constructor as
             # this allows us to use a custom named index
-            .set_index(self.data.columns.rename("Fit"))
+            .set_index(self.data.columns.rename("fit"))
         )
