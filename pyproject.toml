@@ -13,8 +13,8 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/opendatastudio/bindfit"
-"Bug Tracker" = "https://github.com/opendatastudio/bindfit/issues"
+"Homepage" = "https://github.com/open-datakit/bindfit"
+"Bug Tracker" = "https://github.com/open-datakit/bindfit/issues"
 
 [project.optional-dependencies]
 development = [
