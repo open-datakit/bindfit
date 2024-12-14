@@ -18,4 +18,15 @@ pre-commit run
 ## Development environment setup with Flake
 
 ```
+direnv allow
+```
+
+### Deploying to PyPI
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install --upgrade build twine
+python -m build  # Generate distribution archives
+python -m twine upload --repository pypi dist/*  # Upload distribution archives
 ```
